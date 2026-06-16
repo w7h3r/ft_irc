@@ -6,7 +6,7 @@
 #    By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/03/23 16:47:46 by alermi            #+#    #+#              #
-#    Updated: 2026/05/18 11:09:58 by alermi           ###   ########.fr        #
+#    Updated: 2026/05/24 21:23:06 by muokcan          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,7 +24,7 @@ RESET        = \033[0m
 # ============================================================
 NAME        = ircserv
 CXX         = c++
-CXXFLAGS    = -Wall -Wextra -Werror -g -std=c++98
+CXXFLAGS    = -Wall -Wextra -Werror -g -std=c++98 -I$(INC_DIR)
 RM          = rm -rf
 
 # ============================================================
