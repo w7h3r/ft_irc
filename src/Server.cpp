@@ -13,11 +13,15 @@
 #include "../inc/Server/Server.hpp"
 #include "../inc/Exception/Exception.hpp"
 #include <sys/socket.h>
+#include <netinet/in.h>
 #include <unistd.h>
 
 Server::Server()
 {
-	init();
+	_port = DEFAULT_PORT;
+	_socket = -1;
+	_password = DEFAULT_PASSWORD;
+	_running = false;
 }
 
 Server::~Server()
@@ -26,12 +30,22 @@ Server::~Server()
 		close(_socket);
 }
 
-void	Server::init()
+void	Server::createSocket()
 {
-	_port = DEFAULT_PORT;
-	_socket = -1;
-	_password = DEFAULT_PASSWORD;
-	_running = false;
+
+	_socket = socket(AF_INET, SOCK_STREAM, 0);
+	if (_socket < 0)
+		throw std::runtime_error("Failed to create 'Server' socket");
+
+	struct sockaddr_in server_addr;
+	server_addr.sin_family = AF_INET;
+	server_addr.sin_addr.s_addr = INADDR_ANY;
+	server_addr.sin_port = _port;
+
+	if (bind(_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
+		throw std::runtime_error("Failed to bind 'Server' socket");
+	if (listen(_socket, 128) < 0)
+		throw std::runtime_error("Failed to listen on 'Server' socket");
 }
 
 /*
@@ -41,9 +55,7 @@ void	Server::init()
 
 void	Server::start()
 {
-	_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket < 0)
-		throw std::runtime_error("Failed to create 'Server' socket");
+	createSocket();
 	_running = true;
 	std::cout << "Server started on port " << _port << std::endl;
 

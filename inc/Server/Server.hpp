@@ -34,9 +34,9 @@ class	Server
 		std::string			_password;
 		bool				_running;
 
-		void				init();
 		void				handleClient(int client_socket);
 		void				broadcastMessage(const std::string& message, int sender_socket);
+		void				createSocket();
 
 	public:
 		Server();
