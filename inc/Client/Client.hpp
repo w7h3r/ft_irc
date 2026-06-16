@@ -15,26 +15,32 @@
 
 #include <iostream>
 
+enum	parseState
+{
+	PARSE_RECEIVED,
+	PARSE_DELIMITER,
+	PARSE_EXTRACT,
+	PARSE_EXECUTE,
+	PARSE_ERROR,
+};
+
+enum	connectionState
+{
+	CONNECT,
+	WAITING_PASS,
+	WAITING_NICK,
+	WAITING_INFO,
+	ACCEPT,
+	DISCONNECT,
+	REFUSED,
+};
+
 class	Client
 {
 	private:
-		int					_socket;
-		std::string			_nickname;
-		std::string			_username;
-		std::string			_realname;
+		int	fd;
 
 	public:
-		Client(int socket);
-		~Client();
-
-		int					getSocket() const;
-		std::string			getNickname() const;
-		std::string			getUsername() const;
-		std::string			getRealname() const;
-		void				setNickname(const std::string& nickname);
-		void				setUsername(const std::string& username);
-		void				setRealname(const std::string& realname);
-
 };
 
 #endif
