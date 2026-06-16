@@ -1,24 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Client.hpp                                         :+:      :+:    :+:   */
+/*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/05/18 14:55:08 by alermi           ###   ########.fr       */
+/*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
+/*   Updated: 2026/05/24 21:28:58 by muokcan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
-
-#ifndef	CLIENT_HPP
-# define CLIENT_HPP
-
+#ifndef	CHANNEL_HPP
+# define CHANNEL_HPP
 
 #include <iostream>
 
-class	Client
+class	Channel
 {
 
 };
