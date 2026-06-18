@@ -6,7 +6,7 @@
 <!-- By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+       -->
 <!--                                              +#+#+#+#+#+   +#+          -->
 <!-- Created: 2026/06/17 17:10:45 by alermi            #+#    #+#            -->
-<!-- Updated: 2026/06/17 17:16:00 by alermi           ###   ########.fr      -->
+<!-- Updated: 2026/06/18 20:20:54 by alermi           ###   ########.fr      -->
 <!--                                                                         -->
 <!-- *********************************************************************** -->
 
@@ -38,3 +38,4 @@ TODO LIST
 
 
 - using a epoll() function;
+- read a server types

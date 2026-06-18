@@ -6,7 +6,7 @@
 /*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:49 by alermi            #+#    #+#             */
-/*   Updated: 2026/05/24 21:28:52 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/06/18 20:20:17 by alermi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,9 @@
 
 # include "../Channel/Channel.hpp"
 # include <iostream>
+# include <sys/epoll.h>
+# include "../templates/TManager.hpp"
+# include "../Client/Client.hpp"
 
 # define LIVE 1
 # define DEAD 0
@@ -24,24 +27,48 @@
  */
 
 # define DEFAULT_PORT 4242
+# define MAX_EVENTS	512 // MAX event size: Genellikle ağlarla ilgili TCP IP server dokümanlarında nonblock sistemlerde verimli bir event sayısı olarak kabul edilir ne sistemi çok yormayacak bir sayı ne de çok küçük bir sayı diğer bir alternatif 1024
 # define DEFAULT_PASSWORD "gebze"
 
 class	Server
 {
 	private:
 		int					_port;
-		int					_socket;
+		int					_socket; // Anlamadım tam olarak ne için zaten port tutuyoruz [alermi->muokcan] anladığım kadarıyla listen edilecek socket'i kast ediyorsun
 		std::string			_password;
 		bool				_running;
 
+		int					_epollFd;
+		struct	epoll_event	_events[MAX_EVENTS];
 		void				handleClient(int client_socket);
 		void				broadcastMessage(const std::string& message, int sender_socket);
 		void				createSocket();
 
-	public:
+		TManager<int, Client *>	_clients;
+		TManager<std::string, Channel *> _channel;
+		
 		Server();
+		Server(const Server& variant);
+		Server& operator=(const Server& other);
+
+		void	_initSocket();
+		void	_initEpoll();
+
+		void	_acceptClient();
+		void	_refuseClient(int fd);
+		void	_kickClient(int fd);
+		void	_bannClient(int fd);
+
+		void	_readerClient(int fd);
+		void	_writerClient(int fd);
+
+	public:
+		Server(int port, const std::string& password);
 		~Server();
 
+		int					getPort() const;
+		std::string			getPassword() const;
+		bool				running();
 		void				start();
 		void				stop();
 };

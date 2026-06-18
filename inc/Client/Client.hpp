@@ -6,7 +6,7 @@
 /*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/05/24 21:28:48 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/06/18 17:56:42 by alermi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,7 @@ class	Client
 		void			clearWriteBuffer();
 
 		bool			hasCompleteCommand() const;
-		std::string		extractCommand();};
+		std::string		extractCommand();
+};
 
 #endif
