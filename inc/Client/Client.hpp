@@ -60,7 +60,7 @@ class	Client
 
 		Client(int fd, const std::string& ip);
 		~Client();
-
+		
 		void			getFd() const;
 		connectionState	getConState() const;
 		void			setConState(connectionState state);

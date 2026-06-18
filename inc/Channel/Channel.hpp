@@ -32,7 +32,22 @@ class	Channel
 		std::vector<Client *>	_members;
 		std::vector<Client *>	_operator;
 		std::vector<Client *>	_inviteUser;
+	
+
 	public:
+		Channel();
+		~Channel();
+		Channel(const Channel& variant);
+		Channel& operator=(const Channel& other);
+
+		void		setName(const std::string name);
+		std::string	getName() const;
+		
+		void		setTopic(const std::string topic);
+		std::string	getTopic() const;
+
+		void		setKey(const std::string key);
+		std::string	getKey() const;
 };
 
 #endif
