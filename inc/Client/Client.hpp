@@ -60,17 +60,33 @@ class	Client
 
 		Client(int fd, const std::string& ip);
 		~Client();
+
+		//---------------------------------------------
+		//									   GETTTERS
+		//---------------------------------------------
+		int				getFd() const;
+		std::string		getIp() const;
+
+		connectionState	getConnState() const;
+		void			setConnState(connectionState state);
+
+		parseState		getParseState() const;
+		void			setParseState(parseState state);
 		
-		void			getFd() const;
-		connectionState	getConState() const;
-		void			setConState(connectionState state);
+		std::string		getNickname() const;
+		void			setNickname(const std::string& nick);
+		
+		std::string		getUsername() const;
+		void			setUsername(const std::string& user);
 
-		parseState		getParseState();
-		void			appendReadBuffer(const std::string& data);
-		void			appendWriteBuffer(const std::string& data);
+		void			setRealname(const std::string& real);
+		void			appendToReadBuffer(const std::string& data);
+		void			appendToWriteBuffer(const std::string& data);
+
+		std::string&	getWriteBuffer();
+		void			clearWriteBuffer();
+
 		bool			hasCompleteCommand() const;
-		std::string		extractCommand();
-
-};
+		std::string		extractCommand();};
 
 #endif
