@@ -14,6 +14,7 @@
 # define CLIENT_HPP
 
 #include <iostream>
+#include <string>
 
 enum	parseState
 {

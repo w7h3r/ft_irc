@@ -32,22 +32,47 @@ class	Channel
 		std::vector<Client *>	_members;
 		std::vector<Client *>	_operator;
 		std::vector<Client *>	_inviteUser;
-	
 
-	public:
 		Channel();
-		~Channel();
 		Channel(const Channel& variant);
 		Channel& operator=(const Channel& other);
+	public:
+		Channel(const std::string& name);
+		~Channel();
 
-		void		setName(const std::string name);
 		std::string	getName() const;
-		
-		void		setTopic(const std::string topic);
 		std::string	getTopic() const;
-
-		void		setKey(const std::string key);
 		std::string	getKey() const;
+
+		bool		isInviteOnly()		const;
+		bool		isTopicRestricted()	const;
+		size_t		getUserLimit()		const;
+
+		const std::vector<Client *>	getMemberList() const;
+		const std::vector<Client *>	getOperators() const;
+
+
+		void	setName(const std::string& name);
+		void	setTopic(const std::string& topic);
+		void	setKey(const std::string& key);
+
+		void	setInviteOnly(bool status) const;
+		void	setTopicRestricted(bool status) const;
+		void	setUserLimit(size_t avarage) const;
+
+		void	addMember(Client *client);
+		void	removeMember(Client *client);
+		bool	isMember(Client *client) const;
+
+		void	addOperator(Client *client);
+		void	removeOperator(Client *client);
+		bool	isOperator(Client *client);
+
+		void	addInvite(Client *client);
+		void	removeInvite(Client *client);
+		bool	isInvite(Client *client);
+
+		void	broadcast(const std::string& message, Client *exclude = NULL);
 };
 
 #endif
