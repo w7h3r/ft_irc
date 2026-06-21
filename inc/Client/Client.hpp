@@ -18,6 +18,7 @@
 
 enum	parseState
 {
+	PARSE_UNKNOWN = 0,
 	PARSE_RECEIVED,
 	PARSE_DELIMITER,
 	PARSE_EXTRACT,
@@ -27,6 +28,7 @@ enum	parseState
 
 enum	connectionState
 {
+	CONN_UNKNOWN = 0,
 	CONNECT,
 	WAITING_PASS,
 	WAITING_NICK,
@@ -40,7 +42,7 @@ class	Client
 {
 	private:
 		int					_fd;
-		std::string			_Ip;
+		std::string			_ip;
 
 		std::string			_name;
 		std::string			_nickname;
@@ -62,9 +64,6 @@ class	Client
 		Client(int fd, const std::string& ip);
 		~Client();
 
-		//---------------------------------------------
-		//									   GETTTERS
-		//---------------------------------------------
 		int				getFd() const;
 		std::string		getIp() const;
 
