@@ -12,6 +12,7 @@
 
 #include "../inc/Server/Server.hpp"
 #include "../inc/Exception/Exception.hpp"
+#include <asm-generic/socket.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -41,6 +42,9 @@ void	Server::createSocket()
 	server_addr.sin_family = AF_INET;
 	server_addr.sin_addr.s_addr = INADDR_ANY;
 	server_addr.sin_port = _port;
+
+	int opt = 1;
+	setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
 	if (bind(_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
 		throw std::runtime_error("Failed to bind 'Server' socket");

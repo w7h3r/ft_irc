@@ -17,7 +17,7 @@
 
 int	main(void)
 {
-	Server server;
+	Server server(4242, "gebze");
 
 	try 
 	{

@@ -59,5 +59,13 @@ bool			Client::hasCompleteCommand() const { return (_readBuffer.find("\r\n") != 
 
 std::string		Client::extractCommand()
 {
+	size_t	pos = _writeBuffer.find("\n\r");
 
+	if (pos == std::string::npos)
+		return ("");
+
+	std::string	cmd = _writeBuffer.substr(0, pos);
+	_writeBuffer = _writeBuffer.substr(pos + 2);
+
+	return (cmd);
 }
