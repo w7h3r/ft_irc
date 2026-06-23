@@ -6,7 +6,7 @@
 /*   By: muokcan <muokcan@student.42kocaeli.com.tr  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:09 by muokcan           #+#    #+#             */
-/*   Updated: 2026/05/24 21:16:09 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/06/23 16:34:39 by muokcan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,4 +68,12 @@ std::string		Client::extractCommand()
 	_writeBuffer = _writeBuffer.substr(pos + 2);
 
 	return (cmd);
+}
+
+cmd	Client::parseMessage(const std::string& rawMessage)
+{
+	std::string	tmpMessage;
+	cmd			commandMesage;
+	size_t		idx;
+
 }

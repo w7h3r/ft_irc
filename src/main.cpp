@@ -10,21 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Channel/Channel.hpp"
 #include "../inc/Client/Client.hpp"
-#include "../inc/Server/Server.hpp"
-#include "../inc/Exception/Exception.hpp"
+#include <map>
+#include <iostream>
 
 int	main(void)
 {
-	Server server(4242, "gebze");
+	Client	a;
 
-	try 
-	{
-		server.start();
-	}
-	catch (const std::exception& e) 
-	{
-		std::cerr << "Error: " << e.what() << std::endl;
-	}
+	cmd b = a.parseMessage("    	USER alice 0 * :Alice Smith\r\n");
+	std::cout << "TYPE [" << b.type << "]" << std::endl;
+	std::cout << "PARAMS [" << b.params.size() << "]" << std::endl;
+	std::cout << "MESSAGE [" << b.message << "]" << std::endl;
 }
