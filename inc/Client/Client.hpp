@@ -40,7 +40,7 @@ enum	connectionState
 	REFUSED,
 };
 
-struct	cmd
+struct	Command
 {
 	std::string					type;
 	std::vector<std::string>	params;
@@ -65,11 +65,11 @@ class	Client
 		std::string			_readBuffer;
 		bool				_OP;
 
+		Client();
 		Client(const Client& variant);
 		Client& operator=(const Client& other);
 
 	public:
-		Client();
 
 		Client(int fd, const std::string& ip);
 		~Client();
@@ -99,7 +99,7 @@ class	Client
 		bool			hasCompleteCommand() const;
 		std::string		extractCommand();
 
-		cmd				parseMessage(const std::string& rawMessage);
+		Command			parseMessage(const std::string& rawMessage);
 };
 
 #endif

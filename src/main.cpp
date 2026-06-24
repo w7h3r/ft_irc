@@ -16,9 +16,9 @@
 
 int	main(void)
 {
-	Client	a;
+	Client	a(3, "123");
 
-	cmd b = a.parseMessage("    	USER alice 0 * :Alice Smith\r\n");
+	Command b = a.parseMessage("JOIN #channel1 #channel2: AIUSYGDI\r\n");
 	std::cout << "TYPE [" << b.type << "]" << std::endl;
 	std::cout << "PARAMS [" << b.params.size() << "]" << std::endl;
 	std::cout << "MESSAGE [" << b.message << "]" << std::endl;
