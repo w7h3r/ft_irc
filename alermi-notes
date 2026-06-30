@@ -16,32 +16,92 @@
 
     [ ] Müşterilerin tamponunda (_writeBuffer) bekleyen cevapları ağa send() ile fırlatan _handleClientWrite fonksiyonunu tamamla.
 
-2. Kişi: Veri Yöneticisi ve Ayrıştırıcı (Parser)
+. Hazırlık ve İnşa Aşaması (Server::Server ve Init)
 
-Çalışma Alanı: Client.hpp, Client.cpp, TManager.hpp, (İsteğe bağlı Parser.cpp)
+    [ ] Constructor: _port, _password değerlerini al. _socket ve _epollFd değişkenlerini -1 olarak set et.
 
-    [ ] Client sınıfının yapıcılarını (constructor) ve temel get/set fonksiyonlarını bitir.
+    [ ] Socket Yaratma: socket(AF_INET, SOCK_STREAM, 0) çağır. Hata kontrolü yap (< 0 ise throw).
 
-    [ ] Tüm Client'ları FD numaralarına göre bir std::map içinde tutacak, bulacak ve güvenle silecek TManager yapısını ayağa kaldır.
+    [ ] Port Yeniden Kullanımı: setsockopt ile SO_REUSEADDR ayarını yap. (Bunu yapmazsan sunucuyu kapatıp hemen açtığında "Address already in use" hatası alırsın).
 
-    [ ] 1. kişinin ağdan çektiği ham diziyi alıp _readBuffer değişkeninin sonuna ekleyen fonksiyonu hazırla.
+    [ ] Bind: sockaddr_in struct'ını htons(_port) ve INADDR_ANY ile doldur. bind() ile _socket'i bu adrese çak.
 
-    [ ] _readBuffer içinde \r\n (CRLF) karakterlerini arayan ve bulduğu an o satırı makasla kesip çıkaran extractCommand() döngüsünü yaz (Parçalı gelen paketlerin çözümü buradadır).
+    [ ] Listen: listen(_socket, SOMAXCONN) ile gelen istekleri kabul etmeye hazır hale getir.
 
-    [ ] Kesilen bu temiz satırı (Örn: PRIVMSG Ahmet :Naber) boşluklara ve iki noktaya (:) göre bölen, argümanları ayrıştıran mantığı kur.
+    [ ] Non-Block: _socket üzerinde fcntl(F_GETFL) ve fcntl(F_SETFL, O_NONBLOCK) yaparak soketi kaygan hale getir.
 
-3. Kişi: Protokol ve Oyun Mantığı (Business Logic)
+2. Epoll Motorunu Çalıştırma
 
-Çalışma Alanı: Channel.hpp, Channel.cpp, (İsteğe bağlı CommandDispatcher.cpp)
+    [ ] Epoll Yarat: epoll_create1(0) çağır. Başarısız olursa throw fırlat.
 
-    [ ] Channel sınıfını, içindeki üyeleri (Client* tutan vektörü) ve operatörleri tutan listeleri kodla.
+    [ ] Event Tanımla: struct epoll_event yapısını hazırla. ev.events = EPOLLIN, ev.data.fd = _socket yap.
 
-    [ ] Bir mesajın, odadaki tüm Client'ların _writeBuffer'ına nasıl ekleneceğini belirleyen broadcast() fonksiyonunu yaz.
+    [ ] Kayıt: epoll_ctl(_epollFd, EPOLL_CTL_ADD, _socket, &ev) ile ana soketi izleme listesine ekle.
 
-    [ ] HexChat'in ilk bağlantısında arka arkaya gönderdiği PASS, NICK ve USER komutlarını karşılayıp doğrulama zincirini kur.
+3. Ana Döngü (Server::start)
 
-    [ ] Kayıt başarılı olduğunda HexChat'in arayüzünü kilitten açacak olan 001, 002, 003, 004 numaralı standart IRC "Hoş geldin" stringlerini oluştur.
+    [ ] While Döngüsü: while (_running) döngüsünü başlat.
 
-    [ ] JOIN komutunu kodla: Kanal yoksa yarat, kullanıcıyı vektöre ekle ve arayüzün çizilmesi için 353 (İsim listesi) ve 366 yanıtlarını ilgili sokete yazdır.
+    [ ] Wait: epoll_wait(_epollFd, _events, MAX_EVENTS, -1) çağır.
 
-Bu listeye baktığında, ekip arkadaşlarına dağıtımı yaparken en çok hangi aşamanın ("acaba kodu birleştirirken burada takılır mıyız?" dediğin) zorlu geçeceğini düşünüyorsun?
+    [ ] Döngü: Gelen eventCount kadar _events dizisini döndür.
+
+    [ ] Sınıflandırma:
+
+        Eğer triggeredFd == _socket ise: -> _acceptNewClient() çağır.
+
+        Eğer events & EPOLLIN ise: -> _handleClientRead(triggeredFd) çağır.
+
+        Eğer events & EPOLLOUT ise: -> _handleClientWrite(triggeredFd) çağır.
+
+        Eğer events & (EPOLLHUP | EPOLLERR) ise: -> _disconnectClient(triggeredFd) çağır (Bağlantı koptuysa).
+
+4. Bağlantı Yönetimi (_acceptNewClient)
+
+    [ ] Accept: accept(_socket, ...) çağır. -1 gelirse return et.
+
+    [ ] Non-Block: Yeni clientFd'yi hemen O_NONBLOCK yap.
+
+    [ ] Epoll Ekle: Yeni clientFd için EPOLLIN ve EPOLLOUT (yazma işlemleri için) event'lerini ayarla ve epoll_ctl ile ekle.
+
+    [ ] TManager: _clients.add(clientFd, new Client(clientFd)) ile arkadaşının yazdığı sınıfa objeyi kaydet.
+
+    [ ] Log: Sunucu terminaline "New connection: [clientFd]" yazdır.
+
+5. Okuma ve Yazma Mekanizması
+
+    [ ] _handleClientRead:
+
+        recv için 4096 byte'lık bir buffer ayır.
+
+        recv çağır. Eğer bytes <= 0 ise müşteri çıkmıştır: _disconnectClient(clientFd) çağır.
+
+        Eğer bytes > 0 ise currentClient->appendReadBuffer(buffer) ile veriyi pasla.
+
+        Kritik: Eğer veri gelmişse, mesajın parçalanıp parçalanmadığını (CRLF karakteri) kontrol etmesi için Parser arkadaşınla koordineli ol.
+
+    [ ] _handleClientWrite:
+
+        currentClient->getWriteBuffer() ile yollanacak veriyi al.
+
+        send(clientFd, data, len, 0) ile gönder.
+
+        bytesSent miktarını al ve tampondan sil: currentClient->eraseWriteBuffer(bytesSent).
+
+6. Güvenli Kapatma (_disconnectClient ve stop)
+
+    [ ] Epoll Remove: epoll_ctl(..., EPOLL_CTL_DEL, fd, NULL) ile FD'yi izleme listesinden tamamen at.
+
+    [ ] Close: close(fd) ile soketi kapat.
+
+    [ ] Memory Management: _clients.remove(fd) ile map'ten sil ve delete ile Client objesini bellekten uçur (Memory Leak önlemek için hayati).
+
+    [ ] Stop: _running = false yaparak start() döngüsünden çık.
+
+İpucu: 42 Değerlendirme (Evaluation) İçin Not
+
+    "Kritik Hata Yeri": Değerlendirme sırasında biri sunucuna bağlanıp aniden çıkarsa veya Ctrl+C yaparsa, sunucunun asla çökmemesi gerekir.
+
+    recv sonucu 0 geldiğinde bağlantıyı hemen _disconnectClient ile temizle.
+
+    send sonucu -1 gelirse (soket hata verirse), o FD'yi hemen kapat ve sistemden at.
