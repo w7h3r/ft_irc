@@ -43,7 +43,7 @@ class	Server
 		TManager<int, Client *>	_clients;
 		TManager<std::string, Channel *> _channel;
 		
-		Server(); // BU KISMI BI TAM NETLEŞTIR YAZALIM MI YAZMAYALIM MI
+		Server(); // BU KISMI BI TAM NETLE;
 		Server(const Server& variant);
 		Server& operator=(const Server& other);
 
@@ -65,7 +65,7 @@ class	Server
 		int					getPort() const;
 		std::string			getPassword() const;
 		bool				running();
-		void				server_start();
+		void				start();
 		void				stop();
 };
 

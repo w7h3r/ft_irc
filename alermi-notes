@@ -2,13 +2,13 @@
 
 Çalışma Alanı: Server.hpp, Server.cpp
 
-    [ ] socket(), setsockopt(), bind() ve listen() fonksiyonlarını kullanarak ana sunucu soketini başlat.
+    [*] socket(), setsockopt(), bind() ve listen() fonksiyonlarını kullanarak ana sunucu soketini başlat.
 
-    [ ] Sistemin tıkanmaması için ana soketi fcntl() ile O_NONBLOCK (bloklanmaz) moduna al.
+    [*] Sistemin tıkanmaması için ana soketi fcntl() ile O_NONBLOCK (bloklanmaz) moduna al.
 
     [ ] epoll_create1 ile izleme ofisini kur ve ana dinleyici soketini izleme listesine ekle.
 
-    [ ] Server::start() metodunun içine sonsuz while döngüsünü ve olayları toplayan epoll_wait fonksiyonunu yerleştir.
+    [*] Server::start() metodunun içine sonsuz while döngüsünü ve olayları toplayan epoll_wait fonksiyonunu yerleştir.
 
     [ ] EPOLLIN tetiklendiğinde, yeni bağlantıları accept() ile kabul edip onlara birer FD atayan _acceptNewClient fonksiyonunu yaz.
 
@@ -18,17 +18,17 @@
 
 . Hazırlık ve İnşa Aşaması (Server::Server ve Init)
 
-    [ ] Constructor: _port, _password değerlerini al. _socket ve _epollFd değişkenlerini -1 olarak set et.
+    [*] Constructor: _port, _password değerlerini al. _socket ve _epollFd değişkenlerini -1 olarak set et.
 
-    [ ] Socket Yaratma: socket(AF_INET, SOCK_STREAM, 0) çağır. Hata kontrolü yap (< 0 ise throw).
+    [*] Socket Yaratma: socket(AF_INET, SOCK_STREAM, 0) çağır. Hata kontrolü yap (< 0 ise throw).
 
-    [ ] Port Yeniden Kullanımı: setsockopt ile SO_REUSEADDR ayarını yap. (Bunu yapmazsan sunucuyu kapatıp hemen açtığında "Address already in use" hatası alırsın).
+    [*] Port Yeniden Kullanımı: setsockopt ile SO_REUSEADDR ayarını yap. (Bunu yapmazsan sunucuyu kapatıp hemen açtığında "Address already in use" hatası alırsın).
 
-    [ ] Bind: sockaddr_in struct'ını htons(_port) ve INADDR_ANY ile doldur. bind() ile _socket'i bu adrese çak.
+    [*] Bind: sockaddr_in struct'ını htons(_port) ve INADDR_ANY ile doldur. bind() ile _socket'i bu adrese çak.
 
-    [ ] Listen: listen(_socket, SOMAXCONN) ile gelen istekleri kabul etmeye hazır hale getir.
+    [*] Listen: listen(_socket, SOMAXCONN) ile gelen istekleri kabul etmeye hazır hale getir.
 
-    [ ] Non-Block: _socket üzerinde fcntl(F_GETFL) ve fcntl(F_SETFL, O_NONBLOCK) yaparak soketi kaygan hale getir.
+    [*] Non-Block: _socket üzerinde fcntl(F_GETFL) ve fcntl(F_SETFL, O_NONBLOCK) yaparak soketi kaygan hale getir.
 
 2. Epoll Motorunu Çalıştırma
 
@@ -40,9 +40,9 @@
 
 3. Ana Döngü (Server::start)
 
-    [ ] While Döngüsü: while (_running) döngüsünü başlat.
+    [*] While Döngüsü: while (_running) döngüsünü başlat.
 
-    [ ] Wait: epoll_wait(_epollFd, _events, MAX_EVENTS, -1) çağır.
+    [*] Wait: epoll_wait(_epollFd, _events, MAX_EVENTS, -1) çağır.
 
     [ ] Döngü: Gelen eventCount kadar _events dizisini döndür.
 

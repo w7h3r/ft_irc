@@ -32,7 +32,7 @@ Server::~Server()
         close(_socket);
 }
 
-void	Server::server_start()
+void	Server::_initSocket()
 {
 	int	opt = 1;
 	_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
@@ -56,12 +56,38 @@ void	Server::server_start()
 if (bind(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
         throw std::runtime_error("Error: Bind do not success. Ports already in use");
 
-    if (listen(_socket, SOMAXCONN) < 0) //bu kısımda bulunan somaxconn değerini 42 bilgisayarlarına göre güncelle zaten cap işlemi var
+    if (listen(_socket, SOMAXCONN) < 0)
         throw std::runtime_error("Error: listen not working ");
 
     int flags = fcntl(_socket, F_GETFL, 0);
     if (flags == -1 || fcntl(_socket, F_SETFL, flags | O_NONBLOCK) == -1)
-        throw std::runtime_error("Error: Non-blocking not set");
+        throw std::runtime_error("Hata: Non-blocking not set");
+
+}
+
+void	Server::server_start() : _running(true)
+{
+	int	event_count;
+
+	while (_running)
+	{
+		event_count = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
+		if (eventCount < 0) {
+            if (errno == EINTR) continue;
+            throw std::runtime_error("Hata: epoll_wait basarisiz.");
+        }
+
+        for (int i = 0; i < eventCount; ++i) {
+            int triggeredFd = _events[i].data.fd;
+
+            if (triggeredFd == _socket) {
+                _acceptNewClient();
+            }
+            else {
+                _handleClientRead(triggeredFd);
+            }
+        }
+	}
 }
 
 
