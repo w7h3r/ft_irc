@@ -30,7 +30,7 @@ int main(int argc, char **argv)
 	try {
 
 		Server	server(port, password);
-		server.start();
+		server.server_start();
 	}
 	catch (const std::exception& e) {
 		std::cout << "Server internal Error:" << e.what() << std::endl;

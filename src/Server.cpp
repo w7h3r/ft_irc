@@ -19,7 +19,7 @@
 Server::Server(int port, const std::string& password) : _port(port),
                                                         _socket(-1),
                                                         _password(password),
-                                                        _running(false),
+                                                        _running(false)
 {
   std::cout << "Server Constructor Called" << std::endl;
 }
@@ -28,14 +28,13 @@ Server::~Server()
 {
     std::cout << "Destrcutor Called" << std::endl;
     if (_socket != -1)
-        close(socket);
-
+        close(_socket);
 }
 
-Server::start()
+void	Server::server_start()
 {
 	_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
-	ıf (_socket == -1)
+	if (_socket == -1)
 		std::cout << "Error Socket Not Open" << std::endl;
 	else
 		std::cout << "Socket Success open" << std::endl;

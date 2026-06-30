@@ -37,9 +37,9 @@ class	TManager
 		//						BASE METHOD
 		//---------------------------------
 		void	add(const K& key, const V& value);
-		void	remove(const K& key, const V& value);
+		void	remove(const K& key);
 		V		get(const K& key) const;
-		bool	exist(const K& key) const;
+		bool	exists(const K& key) const;
 		const	std::map<K, V>& getAll() const;
 		void	clearAll();
 
@@ -47,5 +47,6 @@ class	TManager
 
 
 # include "TManager.ipp"
+# include "TManager.tpp"
 
 #endif

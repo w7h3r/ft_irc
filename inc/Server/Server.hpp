@@ -65,7 +65,7 @@ class	Server
 		int					getPort() const;
 		std::string			getPassword() const;
 		bool				running();
-		void				start();
+		void				server_start();
 		void				stop();
 };
 
