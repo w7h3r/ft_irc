@@ -15,16 +15,21 @@
 #include "../inc/Server/Server.hpp"
 #include "../inc/Exception/Exception.hpp"
 
-int	main(void)
+int(int argc, char **argv)
 {
-	Server server;
-
-	try 
+	if (ac != 3)
 	{
+		return (1);
+	}
+	int		port = std::atoi(argv[1]);
+	std::string	password = argv[2];
+
+	try {
+
+		Server	server(port, password);
 		server.start();
 	}
-	catch (const std::exception& e) 
-	{
-		std::cerr << "Error: " << e.what() << std::endl;
+	catch (const std::exception&) {
+		std::cout << "Server internal Error:" << e.what() << std::endl;
 	}
 }

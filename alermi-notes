@@ -1,0 +1,47 @@
+. Kişi: Çekirdek Mimar (Ağ ve I/O)
+
+Çalışma Alanı: Server.hpp, Server.cpp
+
+    [ ] socket(), setsockopt(), bind() ve listen() fonksiyonlarını kullanarak ana sunucu soketini başlat.
+
+    [ ] Sistemin tıkanmaması için ana soketi fcntl() ile O_NONBLOCK (bloklanmaz) moduna al.
+
+    [ ] epoll_create1 ile izleme ofisini kur ve ana dinleyici soketini izleme listesine ekle.
+
+    [ ] Server::start() metodunun içine sonsuz while döngüsünü ve olayları toplayan epoll_wait fonksiyonunu yerleştir.
+
+    [ ] EPOLLIN tetiklendiğinde, yeni bağlantıları accept() ile kabul edip onlara birer FD atayan _acceptNewClient fonksiyonunu yaz.
+
+    [ ] İşletim sisteminden gelen ham verileri recv() ile okuyan _handleClientRead fonksiyonunu kodla.
+
+    [ ] Müşterilerin tamponunda (_writeBuffer) bekleyen cevapları ağa send() ile fırlatan _handleClientWrite fonksiyonunu tamamla.
+
+2. Kişi: Veri Yöneticisi ve Ayrıştırıcı (Parser)
+
+Çalışma Alanı: Client.hpp, Client.cpp, TManager.hpp, (İsteğe bağlı Parser.cpp)
+
+    [ ] Client sınıfının yapıcılarını (constructor) ve temel get/set fonksiyonlarını bitir.
+
+    [ ] Tüm Client'ları FD numaralarına göre bir std::map içinde tutacak, bulacak ve güvenle silecek TManager yapısını ayağa kaldır.
+
+    [ ] 1. kişinin ağdan çektiği ham diziyi alıp _readBuffer değişkeninin sonuna ekleyen fonksiyonu hazırla.
+
+    [ ] _readBuffer içinde \r\n (CRLF) karakterlerini arayan ve bulduğu an o satırı makasla kesip çıkaran extractCommand() döngüsünü yaz (Parçalı gelen paketlerin çözümü buradadır).
+
+    [ ] Kesilen bu temiz satırı (Örn: PRIVMSG Ahmet :Naber) boşluklara ve iki noktaya (:) göre bölen, argümanları ayrıştıran mantığı kur.
+
+3. Kişi: Protokol ve Oyun Mantığı (Business Logic)
+
+Çalışma Alanı: Channel.hpp, Channel.cpp, (İsteğe bağlı CommandDispatcher.cpp)
+
+    [ ] Channel sınıfını, içindeki üyeleri (Client* tutan vektörü) ve operatörleri tutan listeleri kodla.
+
+    [ ] Bir mesajın, odadaki tüm Client'ların _writeBuffer'ına nasıl ekleneceğini belirleyen broadcast() fonksiyonunu yaz.
+
+    [ ] HexChat'in ilk bağlantısında arka arkaya gönderdiği PASS, NICK ve USER komutlarını karşılayıp doğrulama zincirini kur.
+
+    [ ] Kayıt başarılı olduğunda HexChat'in arayüzünü kilitten açacak olan 001, 002, 003, 004 numaralı standart IRC "Hoş geldin" stringlerini oluştur.
+
+    [ ] JOIN komutunu kodla: Kanal yoksa yarat, kullanıcıyı vektöre ekle ve arayüzün çizilmesi için 353 (İsim listesi) ve 366 yanıtlarını ilgili sokete yazdır.
+
+Bu listeye baktığında, ekip arkadaşlarına dağıtımı yaparken en çok hangi aşamanın ("acaba kodu birleştirirken burada takılır mıyız?" dediğin) zorlu geçeceğini düşünüyorsun?
