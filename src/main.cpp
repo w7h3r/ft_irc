@@ -14,6 +14,7 @@
 #include "../inc/Client/Client.hpp"
 #include "../inc/Server/Server.hpp"
 #include "../inc/Exception/Exception.hpp"
+#include "../inc/templates/TManager.hpp"
 
 #include <cstdlib>
 #include <exception>
