@@ -15,9 +15,11 @@
 #include "../inc/Server/Server.hpp"
 #include "../inc/Exception/Exception.hpp"
 
-int(int argc, char **argv)
+#include <cstdlib>
+#include <exception>
+int main(int argc, char **argv)
 {
-	if (ac != 3)
+	if (argc != 3)
 	{
 		return (1);
 	}
@@ -29,7 +31,9 @@ int(int argc, char **argv)
 		Server	server(port, password);
 		server.start();
 	}
-	catch (const std::exception&) {
+	catch (const std::exception& e) {
 		std::cout << "Server internal Error:" << e.what() << std::endl;
+		return (1);
 	}
+	return (0);
 }

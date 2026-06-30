@@ -31,3 +31,33 @@ Server::~Server()
         close(socket);
 
 }
+
+Server::start()
+{
+	_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	ıf (_socket == -1)
+		std::cout << "Error Socket Not Open" << std::endl;
+	else
+		std::cout << "Socket Success open" << std::endl;
+	std::cout << _socket << std::endl;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

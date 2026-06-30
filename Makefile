@@ -44,9 +44,9 @@ OBJ_DIR     = obj
 #                       SOURCE & HEADER FILES
 # ============================================================
 # Proje ilerledikçe kendi oluşturduğun header'ları buraya ekle
-HEADERS     = $(INC_DIR)/Server.hpp \
-              $(INC_DIR)/Client.hpp \
-              $(INC_DIR)/Channel.hpp
+HEADERS     = $(INC_DIR)/Server/Server.hpp \
+              $(INC_DIR)/Client/Client.hpp \
+              $(INC_DIR)/Channel/Channel.hpp
 
 # Proje ilerledikçe kendi oluşturduğun cpp'leri buraya ekle
 SRC         = $(SRC_DIR)/main.cpp \
