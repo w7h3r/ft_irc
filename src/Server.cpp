@@ -15,35 +15,43 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <exception>
+#include <netinet/tcp.h>
+#include <fcntl.h>
 #include <unistd.h>
 
-Server::Server(int port, const std::string& password) : _port(port),
-                                                        _socket(-1),
-                                                        _password(password),
-                                                        _running(false)
+Server::Server(int port, const std::string& password) : 
+    _port(port),
+    _socket(-1),
+    _password(password),
+    _running(false),
+    _epollFd(-1)
 {
-  std::cout << "Server Constructor Called" << std::endl;
+    std::cout << "Server Constructor Called" << std::endl;
 }
 
 Server::~Server()
 {
     std::cout << "Destrcutor Called" << std::endl;
-    if (_socket != -1)
+    if (_socket != -1){
         close(_socket);
+	}
+	if (_epollFd != -1){
+		close(_epollFd);
+	}
 }
 
 void	Server::_initSocket()
 {
 	int	opt = 1;
-	_socket = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
+	_socket = socket(AF_INET, SOCK_STREAM , 0);
 	if (_socket == -1)
-		std::cout << "Error Socket Not Open" << std::endl;
+		throw std::runtime_error("Error: Socket do not created:");
 	else
 		std::cout << "Socket Success open" << std::endl;
 	std::cout << _socket << std::endl;
 
 	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
-		throw (std::runtime_error("Error socket option:SO_REUSEADDR not set");
+		throw (std::runtime_error("Error socket option:SO_REUSEADDR not set"));
 
 	if (setsockopt(_socket, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
 		throw(std::runtime_error("Error socket option: TCP_NODELAY not set"));
@@ -65,13 +73,44 @@ if (bind(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
 
 }
 
-void	Server::server_start() : _running(true)
+void	Server::_initEpoll()
 {
-	int	event_count;
+	_epollFd = epoll_create1(0);
 
+	if (_epollFd == -1)
+		throw (std::runtime_error("Error: epoll_Create failed"));
+
+	struct	epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = _socket;
+
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, _socket, &ev) == -1)
+		throw (std::runtime_error("Error: epoll table add error"));
+
+	std::cout << "Epoll initilize successfuly" << std::endl;
+}
+
+void	Server::_readerClient(int fd)
+{
+	(void)fd;
+	std::cout << "Reader Function Called" << std::endl;
+}
+
+void	Server::_acceptClient()
+{
+	std::cout << "Accepted the client /TEST/" << std::endl;
+}
+
+void	Server::server_start()
+{
+	_initSocket();
+    _initEpoll();
+	int	eventCount;
+
+	this->_running = true;
 	while (_running)
 	{
-		event_count = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
+		eventCount = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
 		if (eventCount < 0) {
             if (errno == EINTR) continue;
             throw std::runtime_error("Hata: epoll_wait basarisiz.");
@@ -81,10 +120,10 @@ void	Server::server_start() : _running(true)
             int triggeredFd = _events[i].data.fd;
 
             if (triggeredFd == _socket) {
-                _acceptNewClient();
+                _acceptClient();
             }
             else {
-                _handleClientRead(triggeredFd);
+                _readerClient(triggeredFd);
             }
         }
 	}

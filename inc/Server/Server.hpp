@@ -36,9 +36,6 @@ class	Server
 
 		int					_epollFd;
 		struct	epoll_event	_events[MAX_EVENTS];
-		void				handleClient(int client_socket);
-		void				broadcastMessage(const std::string& message, int sender_socket);
-		void				createSocket();
 
 		TManager<int, Client *>	_clients;
 		TManager<std::string, Channel *> _channel;
@@ -65,7 +62,7 @@ class	Server
 		int					getPort() const;
 		std::string			getPassword() const;
 		bool				running();
-		void				start();
+		void				server_start();
 		void				stop();
 };
 
