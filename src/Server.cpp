@@ -11,11 +11,11 @@
 /* ************************************************************************** */
 
 #include "../inc/Server/Server.hpp"
-#include "../inc/Exception/Exception.hpp"
+#include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <exception>
 #include <netinet/tcp.h>
+#include <arpa/inet.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -98,7 +98,35 @@ void	Server::_readerClient(int fd)
 
 void	Server::_acceptClient()
 {
-	std::cout << "Accepted the client /TEST/" << std::endl;
+	struct	sockaddr_in	clientAdress;
+	socklen_t	clientLen	= sizeof(clientAdress);
+
+	int	clientFd = accept(this->_socket, (struct sockaddr*)&clientAdress, &clientLen);
+	if (clientFd == -1)
+	{
+		std::cerr << "Error: Client Not Accept" << std::endl;
+		return ;
+	}
+
+	int	flags	= fcntl(clientFd, F_GETFL, 0);
+	fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+
+	struct	epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = clientFd;
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, clientFd, &ev) == -1)
+	{
+		close(clientFd);
+		return ;
+	}
+
+	std::cout << "|========[Accepted New Client Connection]========|" << std::endl;
+	std::cout << ">" << clientFd << ":" << inet_ntoa(clientAdress.sin_addr) << std::endl;
+
+	//========================Her Client'ı temsilen yeni bir Client Objesi oluşturulur
+	
+	Client	*serverMember = new	Client(clientFd, inet_ntoa(clientAdress.sin_addr));
+	_clients.add(clientFd, serverMember);
 }
 
 void	Server::server_start()
