@@ -92,8 +92,16 @@ void	Server::_initEpoll()
 
 void	Server::_readerClient(int fd)
 {
-	(void)fd;
-	std::cout << "Reader Function Called" << std::endl;
+	char	buffer[1024];
+
+	ssize_t	contentByte = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	if (contentByte <= 0)
+		_refuseClient(fd);
+	else
+	{
+		Client	*evClient = _clients.get(fd);
+		evClient->appendToReadBuffer(buffer);
+	};
 }
 
 void	Server::_acceptClient()
@@ -129,6 +137,11 @@ void	Server::_acceptClient()
 	_clients.add(clientFd, serverMember);
 }
 
+void	Server::_refuseClient(int fd);
+{
+	std::cout << "refusing connect" << std::endl;
+}
+
 void	Server::server_start()
 {
 	_initSocket();
@@ -156,23 +169,4 @@ void	Server::server_start()
         }
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
