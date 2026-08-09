@@ -15,7 +15,7 @@
  */
 
 template <typename K, typename V>
-inline Tmanager<K, V>::TManager() : {}
+inline TManager<K, V>::TManager() : {}
 
 template <typename K, typename V>
 inline TManager<K, V>::~TManager()
@@ -47,7 +47,10 @@ inline void TManager<K, V>::remove(const K& key, const V& value)
 	(void)value;
 	std::map<K, V>::iterator it = _data.find(key);
 	if (it != _data.end())
+		{
 		_data.erase(it);
+		return ;
+		}
 	throw std::runtime_error("Key not found in TManager.");
 }
 

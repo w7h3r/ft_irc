@@ -42,6 +42,16 @@ std::string		Client::getIp() const { return (_ip); }
 connectionState	Client::getConnState() const { return (_connState); }
 void			Client::setConnState(connectionState state) { _connState = state; }
 
+bool			Client::isOP() const { return (_OP); }
+void			Client::setOP(bool isOp) { _OP = isOp; }
+
+bool			Client::isRegistered() const { return (_connState == ACCEPT); }
+bool			Client::isDisconnected() const { return (_connState == DISCONNECT); }
+bool			Client::isRefused() const { return (_connState == REFUSED); }
+bool			Client::isWaitingPass() const { return (_connState == WAITING_PASS); }
+bool			Client::isWaitingNick() const { return (_connState == WAITING_NICK); }
+bool			Client::isWaitingInfo() const { return (_connState == WAITING_INFO); }
+
 parseState		Client::getParseState() const { return ( _parseState); }
 void			Client::setParseState(parseState state) { _parseState = state; }
 
@@ -59,16 +69,16 @@ void			Client::clearWriteBuffer() { _writeBuffer.clear(); }
 
 bool			Client::hasCompleteCommand() const { return (_readBuffer.find("\r\n") != std::string::npos); }
 
+// This fuction is almost useless
 std::string		Client::extractCommand()
 {
-	size_t	pos = _readBuffer.find("\r\n");
-
-	if (pos == std::string::npos)
-		return ("");
-
-	std::string	cmd = _readBuffer.substr(0, pos);
-	_readBuffer = _readBuffer.substr(pos + 2);
-
+	std::string	cmd;
+	size_t		pos = _readBuffer.find("\r\n");
+	if (pos != std::string::npos)
+	{
+		cmd = _readBuffer.substr(0, pos);
+		_readBuffer.erase(0, pos + 2);
+	}
 	return (cmd);
 }
 
@@ -84,24 +94,65 @@ static	std::vector<std::string>	splitWords(const std::string &message)
 	return (wordList);
 }
 
+// resizing the message to 512, cause maximum lenght of a message is 512 bytes defined by RFC 1459(or something like that)
+
 Command	Client::parseMessage(const std::string& rawMessage)
 {
-	std::string		tmpMessage;
-	size_t			idx;
-	Command			command;
+	std::string	message = rawMessage;
+	Command		command;
 
-	idx = rawMessage.find(':');
-	if (idx != std::string::npos)
-		command.message = rawMessage.substr(idx + 1, rawMessage.length() - (idx + 3));
-	else
-		command.message = "";
-
-	std::vector<std::string> wordList = splitWords(rawMessage.substr(0, idx));
-	command.type = wordList[0];
-
-	for(size_t i = 1; i < wordList.size(); i++)
-		command.params.push_back(wordList[i]);
-
+	if (message.length() > 512)
+		message = message.substr(0, 512);
+	if (message.length() >= 2 && message.substr(message.length() - 2) == "\r\n")
+		message = message.substr(0, message.length() - 2);
+	size_t	pos = message.find(" :");
+	if (pos != std::string::npos)
+	{
+		command.message = message.substr(pos + 2);
+		message = message.substr(0, pos);
+	}
+	std::vector<std::string>	words = splitWords(message);
+	if (!words.empty())
+	{
+		command.type = words[0];
+		for (size_t i = 1; i < words.size(); ++i)
+			command.params.push_back(words[i]);
+	}
 	return (command);
 }
 
+static	bool	isValidNickname(const std::string& str)
+{
+	
+	if (str.empty())
+		return (false);
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
+			return (false);
+	}
+	return (true);
+}
+
+static	bool	isValidUsername(const std::string& str)
+{
+	if (str.empty())
+		return (false);
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
+			return (false);
+	}
+	return (true);
+}
+
+static	bool	isValidPassword(const std::string& str)
+{
+	// I'll go sleep, can't think about this stupid func.
+	return (true);
+}
+
+bool	Client::hasValidCredentials() const
+{
+	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password));
+}

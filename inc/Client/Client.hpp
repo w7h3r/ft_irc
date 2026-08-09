@@ -76,6 +76,16 @@ class	Client
 
 		int				getFd() const;
 		std::string		getIp() const;
+		bool			isOP() const;
+		void			setOP(bool op);
+
+		bool			isRegistered() const;
+
+		bool			isDisconnected() const;
+		bool			isRefused() const;
+		bool			isWaitingPass() const;
+		bool			isWaitingNick() const;
+		bool			isWaitingInfo() const;
 
 		connectionState	getConnState() const;
 		void			setConnState(connectionState state);
@@ -89,9 +99,10 @@ class	Client
 		std::string		getUsername() const;
 		void			setUsername(const std::string& user);
 
-		void			setRealname(const std::string& real);
 		void			appendToReadBuffer(const std::string& data);
 		void			appendToWriteBuffer(const std::string& data);
+
+		bool			hasValidCredentials() const;
 
 		std::string&	getWriteBuffer();
 		void			clearWriteBuffer();
@@ -99,7 +110,7 @@ class	Client
 		bool			hasCompleteCommand() const;
 		std::string		extractCommand();
 
-		Command			parseMessage(const std::string& rawMessage);
+		Command			parseMessage(const std::string& message);
 };
 
 #endif
