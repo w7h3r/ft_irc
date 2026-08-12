@@ -16,9 +16,9 @@
 
 Client::Client() { }
 
-Client::Client(const Client& variant) { }
+Client::Client(const Client& variant) {(void)variant; }
 
-Client &Client::operator=(const Client& other) { return (*this); }
+Client &Client::operator=(const Client& other) {(void)other; return (*this); }
 
 Client::Client(int fd, const std::string &ip) :
 	_fd(fd), _ip(ip)
@@ -149,6 +149,7 @@ static	bool	isValidUsername(const std::string& str)
 static	bool	isValidPassword(const std::string& str)
 {
 	// I'll go sleep, can't think about this stupid func.
+	(void)str;
 	return (true);
 }
 
