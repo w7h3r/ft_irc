@@ -13,8 +13,6 @@
 #ifndef	CLIENT_HPP
 # define CLIENT_HPP
 
-#include <codecvt>
-#include <iostream>
 #include <string>
 #include <vector>
 
