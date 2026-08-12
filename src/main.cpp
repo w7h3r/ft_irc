@@ -13,13 +13,29 @@
 #include "../inc/Client/Client.hpp"
 #include <map>
 #include <iostream>
+#include "../inc/Server/Server.hpp"
+#include "../inc/Exception/Exception.hpp"
+#include "../inc/templates/TManager.hpp"
 
-int	main(void)
+#include <cstdlib>
+#include <exception>
+int main(int argc, char **argv)
 {
-	Client	a(3, "123");
+	if (argc != 3)
+	{
+		return (1);
+	}
+	int		port = std::atoi(argv[1]);
+	std::string	password = argv[2];
 
-	Command b = a.parseMessage("JOIN #channel1 #channel2: AIUSYGDI\r\n");
-	std::cout << "TYPE [" << b.type << "]" << std::endl;
-	std::cout << "PARAMS [" << b.params.size() << "]" << std::endl;
-	std::cout << "MESSAGE [" << b.message << "]" << std::endl;
+	try {
+
+		Server	server(port, password);
+		server.server_start();
+	}
+	catch (const std::exception& e) {
+		std::cout << "Server internal Error:" << e.what() << std::endl;
+		return (1);
+	}
+	return (0);
 }

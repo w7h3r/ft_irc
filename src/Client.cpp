@@ -156,3 +156,4 @@ bool	Client::hasValidCredentials() const
 {
 	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password));
 }
+

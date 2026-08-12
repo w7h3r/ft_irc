@@ -23,23 +23,24 @@ private:
   std::map<K, V> _data;
 
 public:
-  //---------------------------------
-  //						OCF METHODS
-  //---------------------------------
-  TManager();
-  ~TManager();
-  TManager(const TManager &variant);
-  TManager &operator=(const TManager &other);
+		//---------------------------------
+		//						OCF METHODS
+		//---------------------------------
+		TManager();
+		~TManager();
+		TManager(const TManager& variant);
+		TManager&	operator=(const TManager& other);
 
-  //---------------------------------
-  //						BASE METHOD
-  //---------------------------------
-  void add(const K &key, const V &value);
-  void remove(const K &key, const V &value);
-  V get(const K &key) const;
-  void exist(const K &key) const;
-  const std::map<K, V> &getAll() const;
-  void clearAll();
+		//---------------------------------
+		//						BASE METHOD
+		//---------------------------------
+		void	add(const K& key, const V& value);
+		void	remove(const K& key);
+		V		get(const K& key) const;
+		bool	exists(const K& key) const;
+		const	std::map<K, V>& getAll() const;
+		void	clearAll();
+
 };
 
 #include "TManager.ipp"

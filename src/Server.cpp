@@ -15,56 +15,137 @@
 #include <asm-generic/socket.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <exception>
+#include <netinet/tcp.h>
+#include <fcntl.h>
 #include <unistd.h>
 
-Server::Server()
+Server::Server(int port, const std::string& password) : 
+    _port(port),
+    _socket(-1),
+    _password(password),
+    _running(false),
+    _epollFd(-1)
 {
-	_port = DEFAULT_PORT;
-	_socket = -1;
-	_password = DEFAULT_PASSWORD;
-	_running = false;
+    std::cout << "Server Constructor Called" << std::endl;
 }
 
 Server::~Server()
 {
-	if (_socket != -1)
-		close(_socket);
-}
-
-void	Server::createSocket()
-{
-
-	_socket = socket(AF_INET, SOCK_STREAM, 0);
-	if (_socket < 0)
-		throw std::runtime_error("Failed to create 'Server' socket");
-
-	struct sockaddr_in server_addr;
-	server_addr.sin_family = AF_INET;
-	server_addr.sin_addr.s_addr = INADDR_ANY;
-	server_addr.sin_port = _port;
-
-	int opt = 1;
-	setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
-
-	if (bind(_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0)
-		throw std::runtime_error("Failed to bind 'Server' socket");
-	if (listen(_socket, 128) < 0)
-		throw std::runtime_error("Failed to listen on 'Server' socket");
-}
-
-/*
- * Server::start() -apperantly-starts the server's loop for handling connections and messages.
- * Empty fot now.
- */
-
-void	Server::start()
-{
-	createSocket();
-	_running = true;
-	std::cout << "Server started on port " << _port << std::endl;
-
-	while (_running)
-	{
-
+    std::cout << "Destrcutor Called" << std::endl;
+    if (_socket != -1){
+        close(_socket);
+	}
+	if (_epollFd != -1){
+		close(_epollFd);
 	}
 }
+
+void	Server::_initSocket()
+{
+	int	opt = 1;
+	_socket = socket(AF_INET, SOCK_STREAM , 0);
+	if (_socket == -1)
+		throw std::runtime_error("Error: Socket do not created:");
+	else
+		std::cout << "Socket Success open" << std::endl;
+	std::cout << _socket << std::endl;
+
+	if (setsockopt(_socket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0)
+		throw (std::runtime_error("Error socket option:SO_REUSEADDR not set"));
+
+	if (setsockopt(_socket, IPPROTO_TCP, TCP_NODELAY, &opt, sizeof(opt)) < 0)
+		throw(std::runtime_error("Error socket option: TCP_NODELAY not set"));
+	
+	struct sockaddr_in serverAddr;
+    serverAddr.sin_family = AF_INET;
+    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_port = htons(_port);
+
+if (bind(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+        throw std::runtime_error("Error: Bind do not success. Ports already in use");
+
+    if (listen(_socket, SOMAXCONN) < 0)
+        throw std::runtime_error("Error: listen not working ");
+
+    int flags = fcntl(_socket, F_GETFL, 0);
+    if (flags == -1 || fcntl(_socket, F_SETFL, flags | O_NONBLOCK) == -1)
+        throw std::runtime_error("Hata: Non-blocking not set");
+
+}
+
+void	Server::_initEpoll()
+{
+	_epollFd = epoll_create1(0);
+
+	if (_epollFd == -1)
+		throw (std::runtime_error("Error: epoll_Create failed"));
+
+	struct	epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = _socket;
+
+	if (epoll_ctl(_epollFd, EPOLL_CTL_ADD, _socket, &ev) == -1)
+		throw (std::runtime_error("Error: epoll table add error"));
+
+	std::cout << "Epoll initilize successfuly" << std::endl;
+}
+
+void	Server::_readerClient(int fd)
+{
+	(void)fd;
+	std::cout << "Reader Function Called" << std::endl;
+}
+
+void	Server::_acceptClient()
+{
+	std::cout << "Accepted the client /TEST/" << std::endl;
+}
+
+void	Server::server_start()
+{
+	_initSocket();
+    _initEpoll();
+	int	eventCount;
+
+	this->_running = true;
+	while (_running)
+	{
+		eventCount = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
+		if (eventCount < 0) {
+            if (errno == EINTR) continue;
+            throw std::runtime_error("Hata: epoll_wait basarisiz.");
+        }
+
+        for (int i = 0; i < eventCount; ++i) {
+            int triggeredFd = _events[i].data.fd;
+
+            if (triggeredFd == _socket) {
+                _acceptClient();
+            }
+            else {
+                _readerClient(triggeredFd);
+            }
+        }
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,107 @@
+. Kişi: Çekirdek Mimar (Ağ ve I/O)
+
+Çalışma Alanı: Server.hpp, Server.cpp
+
+    [*] socket(), setsockopt(), bind() ve listen() fonksiyonlarını kullanarak ana sunucu soketini başlat.
+
+    [*] Sistemin tıkanmaması için ana soketi fcntl() ile O_NONBLOCK (bloklanmaz) moduna al.
+
+    [ ] epoll_create1 ile izleme ofisini kur ve ana dinleyici soketini izleme listesine ekle.
+
+    [*] Server::start() metodunun içine sonsuz while döngüsünü ve olayları toplayan epoll_wait fonksiyonunu yerleştir.
+
+    [ ] EPOLLIN tetiklendiğinde, yeni bağlantıları accept() ile kabul edip onlara birer FD atayan _acceptNewClient fonksiyonunu yaz.
+
+    [ ] İşletim sisteminden gelen ham verileri recv() ile okuyan _handleClientRead fonksiyonunu kodla.
+
+    [ ] Müşterilerin tamponunda (_writeBuffer) bekleyen cevapları ağa send() ile fırlatan _handleClientWrite fonksiyonunu tamamla.
+
+. Hazırlık ve İnşa Aşaması (Server::Server ve Init)
+
+    [*] Constructor: _port, _password değerlerini al. _socket ve _epollFd değişkenlerini -1 olarak set et.
+
+    [*] Socket Yaratma: socket(AF_INET, SOCK_STREAM, 0) çağır. Hata kontrolü yap (< 0 ise throw).
+
+    [*] Port Yeniden Kullanımı: setsockopt ile SO_REUSEADDR ayarını yap. (Bunu yapmazsan sunucuyu kapatıp hemen açtığında "Address already in use" hatası alırsın).
+
+    [*] Bind: sockaddr_in struct'ını htons(_port) ve INADDR_ANY ile doldur. bind() ile _socket'i bu adrese çak.
+
+    [*] Listen: listen(_socket, SOMAXCONN) ile gelen istekleri kabul etmeye hazır hale getir.
+
+    [*] Non-Block: _socket üzerinde fcntl(F_GETFL) ve fcntl(F_SETFL, O_NONBLOCK) yaparak soketi kaygan hale getir.
+
+2. Epoll Motorunu Çalıştırma
+
+    [ ] Epoll Yarat: epoll_create1(0) çağır. Başarısız olursa throw fırlat.
+
+    [ ] Event Tanımla: struct epoll_event yapısını hazırla. ev.events = EPOLLIN, ev.data.fd = _socket yap.
+
+    [ ] Kayıt: epoll_ctl(_epollFd, EPOLL_CTL_ADD, _socket, &ev) ile ana soketi izleme listesine ekle.
+
+3. Ana Döngü (Server::start)
+
+    [*] While Döngüsü: while (_running) döngüsünü başlat.
+
+    [*] Wait: epoll_wait(_epollFd, _events, MAX_EVENTS, -1) çağır.
+
+    [ ] Döngü: Gelen eventCount kadar _events dizisini döndür.
+
+    [ ] Sınıflandırma:
+
+        Eğer triggeredFd == _socket ise: -> _acceptNewClient() çağır.
+
+        Eğer events & EPOLLIN ise: -> _handleClientRead(triggeredFd) çağır.
+
+        Eğer events & EPOLLOUT ise: -> _handleClientWrite(triggeredFd) çağır.
+
+        Eğer events & (EPOLLHUP | EPOLLERR) ise: -> _disconnectClient(triggeredFd) çağır (Bağlantı koptuysa).
+
+4. Bağlantı Yönetimi (_acceptNewClient)
+
+    [ ] Accept: accept(_socket, ...) çağır. -1 gelirse return et.
+
+    [ ] Non-Block: Yeni clientFd'yi hemen O_NONBLOCK yap.
+
+    [ ] Epoll Ekle: Yeni clientFd için EPOLLIN ve EPOLLOUT (yazma işlemleri için) event'lerini ayarla ve epoll_ctl ile ekle.
+
+    [ ] TManager: _clients.add(clientFd, new Client(clientFd)) ile arkadaşının yazdığı sınıfa objeyi kaydet.
+
+    [ ] Log: Sunucu terminaline "New connection: [clientFd]" yazdır.
+
+5. Okuma ve Yazma Mekanizması
+
+    [ ] _handleClientRead:
+
+        recv için 4096 byte'lık bir buffer ayır.
+
+        recv çağır. Eğer bytes <= 0 ise müşteri çıkmıştır: _disconnectClient(clientFd) çağır.
+
+        Eğer bytes > 0 ise currentClient->appendReadBuffer(buffer) ile veriyi pasla.
+
+        Kritik: Eğer veri gelmişse, mesajın parçalanıp parçalanmadığını (CRLF karakteri) kontrol etmesi için Parser arkadaşınla koordineli ol.
+
+    [ ] _handleClientWrite:
+
+        currentClient->getWriteBuffer() ile yollanacak veriyi al.
+
+        send(clientFd, data, len, 0) ile gönder.
+
+        bytesSent miktarını al ve tampondan sil: currentClient->eraseWriteBuffer(bytesSent).
+
+6. Güvenli Kapatma (_disconnectClient ve stop)
+
+    [ ] Epoll Remove: epoll_ctl(..., EPOLL_CTL_DEL, fd, NULL) ile FD'yi izleme listesinden tamamen at.
+
+    [ ] Close: close(fd) ile soketi kapat.
+
+    [ ] Memory Management: _clients.remove(fd) ile map'ten sil ve delete ile Client objesini bellekten uçur (Memory Leak önlemek için hayati).
+
+    [ ] Stop: _running = false yaparak start() döngüsünden çık.
+
+İpucu: 42 Değerlendirme (Evaluation) İçin Not
+
+    "Kritik Hata Yeri": Değerlendirme sırasında biri sunucuna bağlanıp aniden çıkarsa veya Ctrl+C yaparsa, sunucunun asla çökmemesi gerekir.
+
+    recv sonucu 0 geldiğinde bağlantıyı hemen _disconnectClient ile temizle.
+
+    send sonucu -1 gelirse (soket hata verirse), o FD'yi hemen kapat ve sistemden at.
