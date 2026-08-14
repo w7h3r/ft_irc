@@ -11,9 +11,14 @@
 /* ************************************************************************** */
 
 #include "../inc/Server/Server.hpp"
+#include <iostream>
+#include "../inc/Exception/Exception.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include <asm-generic/socket.h>
+#include <exception>
+#include <cerrno>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
@@ -137,7 +142,7 @@ void	Server::_acceptClient()
 	_clients.add(clientFd, serverMember);
 }
 
-void	Server::_refuseClient(int fd);
+void	Server::_refuseClient(int fd)
 {
 	std::cout << "refusing connect" << std::endl;
 }

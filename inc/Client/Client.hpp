@@ -6,18 +6,19 @@
 /*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/18 17:56:42 by alermi           ###   ########.fr       */
+/*   Updated: 2026/06/23 15:50:50 by muokcan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef	CLIENT_HPP
 # define CLIENT_HPP
 
-#include <iostream>
 #include <string>
+#include <vector>
 
 enum	parseState
 {
+	PARSE_UNKNOWN = 0,
 	PARSE_RECEIVED,
 	PARSE_DELIMITER,
 	PARSE_EXTRACT,
@@ -27,6 +28,7 @@ enum	parseState
 
 enum	connectionState
 {
+	CONN_UNKNOWN = 0,
 	CONNECT,
 	WAITING_PASS,
 	WAITING_NICK,
@@ -36,11 +38,19 @@ enum	connectionState
 	REFUSED,
 };
 
+struct	Command
+{
+	std::string					type;
+	std::vector<std::string>	params;
+	std::string					message;
+	
+};
+
 class	Client
 {
 	private:
 		int					_fd;
-		std::string			_Ip;
+		std::string			_ip;
 
 		std::string			_name;
 		std::string			_nickname;
@@ -62,11 +72,18 @@ class	Client
 		Client(int fd, const std::string& ip);
 		~Client();
 
-		//---------------------------------------------
-		//									   GETTTERS
-		//---------------------------------------------
 		int				getFd() const;
 		std::string		getIp() const;
+		bool			isOP() const;
+		void			setOP(bool op);
+
+		bool			isRegistered() const;
+
+		bool			isDisconnected() const;
+		bool			isRefused() const;
+		bool			isWaitingPass() const;
+		bool			isWaitingNick() const;
+		bool			isWaitingInfo() const;
 
 		connectionState	getConnState() const;
 		void			setConnState(connectionState state);
@@ -80,15 +97,18 @@ class	Client
 		std::string		getUsername() const;
 		void			setUsername(const std::string& user);
 
-		void			setRealname(const std::string& real);
 		void			appendToReadBuffer(const std::string& data);
 		void			appendToWriteBuffer(const std::string& data);
+
+		bool			hasValidCredentials() const;
 
 		std::string&	getWriteBuffer();
 		void			clearWriteBuffer();
 
 		bool			hasCompleteCommand() const;
 		std::string		extractCommand();
+
+		Command			parseMessage(const std::string& message);
 };
 
 #endif

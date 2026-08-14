@@ -6,25 +6,23 @@
 /*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:24 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/17 17:57:26 by alermi           ###   ########.fr       */
+/*   Updated: 2026/06/23 14:21:06 by muokcan          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-
 #ifndef TMANAGER_HPP
-# define TMANAGER_HPP
+#define TMANAGER_HPP
 
-# include <map>
-# include <stdexcept>
+#include <map>
+#include <stdexcept>
 
-template <typename  K, typename V>
+template <typename K, typename V>
 
-class	TManager
-{
-	private:
-		std::map<K, V> _data;
-	public:
+class TManager {
+private:
+  std::map<K, V> _data;
 
+public:
 		//---------------------------------
 		//						OCF METHODS
 		//---------------------------------
@@ -45,8 +43,7 @@ class	TManager
 
 };
 
-
-# include "TManager.ipp"
-# include "TManager.tpp"
+#include "TManager.ipp"
+#include "TManager.tpp"
 
 #endif
