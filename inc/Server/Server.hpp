@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:49 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/18 20:20:17 by alermi           ###   ########.fr       */
+/*   Updated: 2026/08/17 00:19:20 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,6 +59,9 @@ class	Server
 		Server(int port, const std::string& password);
 		~Server();
 
+		Client	*getClientByUsername(std::string &username); // -omer
+		std::vector<Client *> getAllClients() const; // -omer
+		
 		int					getPort() const;
 		std::string			getPassword() const;
 		bool				running();

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   TManager.tpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:33 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/23 14:32:27 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/17 00:19:41 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,6 +64,16 @@ V TManager<K, V>::get(const K& key) const {
 template <typename K, typename V>
 void TManager<K, V>::clearAll() {
     _data.clear();
+}
+
+template <typename K, typename V> // -omer
+std::vector<V> TManager<K, V>::getAllValues()
+{
+    std::vector<V> values;
+    std::map<K, V>::const_iterator it = _data.begin();
+    for (it; it < _data.end(); it++)
+        values.std::push_back(it->second);
+    return (values);
 }
 
 #endif

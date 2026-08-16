@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   TManager.hpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:24 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/23 14:21:06 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/17 00:15:39 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,7 @@ public:
 		bool	exists(const K& key) const;
 		const	std::map<K, V>& getAll() const;
 		void	clearAll();
+		std::vector<V> getAllValues() const; // omer
 
 };
 

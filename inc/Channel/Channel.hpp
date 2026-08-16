@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/08/16 05:48:04 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/08/16 23:11:22 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,7 +40,7 @@ class	Channel
 		Channel& operator=(const Channel& other);
 	public:
 		Channel();
-		Channel(const std::string& name);
+		Channel(const std::string& name, const std::string &key);
 		~Channel();
 
 		std::string	getName() const;
@@ -64,6 +64,7 @@ class	Channel
 		void	setTopicRestricted(bool& status);
 		void	setUserLimit(size_t& limit);
 
+		Client	*getMember(std::string Name);
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
 		bool	isMember(Client *client) const;
@@ -77,6 +78,8 @@ class	Channel
 		bool	isInvite(Client *client) const;
 
 		void	broadcast(const std::string& message, Client *exclude = NULL);
+
+		// this aren't suppose to be a method
 };
 
 #endif

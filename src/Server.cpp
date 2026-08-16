@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muokcan <muokcan@student.42kocaeli.com.tr  +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:05 by muokcan           #+#    #+#             */
-/*   Updated: 2026/05/24 21:16:06 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/17 00:22:33 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -131,7 +131,21 @@ void	Server::server_start()
 	}
 }
 
+std::vector<Client *> Server::getAllClients() const // omer
+{
+	return (_clients.getAllVales());
+}
 
+Client	*Server::getClientByUsername(std::string &username) // omer
+{
+	const std::vector<Client *> all = _clients.getAllClients();
+	for (std::vector<Client *>::const_iterator it = all.begin(); it < all.end(); it++)
+	{
+		if ((*it)->getUsername() == username)
+			return (*it);
+	}
+	return (NULL);
+}
 
 
 

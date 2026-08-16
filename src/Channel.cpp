@@ -6,15 +6,16 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/08/16 05:52:24 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/08/16 23:11:44 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Channel/Channel.hpp"
 
-Channel::Channel(const std::string &name)
+Channel::Channel(const std::string &name, const std::string &key)
 {
     _name = name;
+    _key = key;
     _isInviteOnly = 0;
     _isTopicRestricted = 0;
     _userLimit = 0;
@@ -93,3 +94,4 @@ bool        Channel::isInvite(Client *client) const
     }
     return (0);
 }
+
