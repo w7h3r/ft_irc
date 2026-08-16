@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: muokcan <muokcan@student.42kocaeli.com.tr  +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:09 by muokcan           #+#    #+#             */
-/*   Updated: 2026/06/23 16:34:39 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/16 05:29:54 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,6 +70,7 @@ void			Client::clearWriteBuffer() { _writeBuffer.clear(); }
 bool			Client::hasCompleteCommand() const { return (_readBuffer.find("\r\n") != std::string::npos); }
 
 // This fuction is almost useless
+// then why do u even declare it ? -omer
 std::string		Client::extractCommand()
 {
 	std::string	cmd;

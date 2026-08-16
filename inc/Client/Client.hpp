@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Client.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/06/23 15:50:50 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/16 05:35:26 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,11 +63,11 @@ class	Client
 		std::string			_readBuffer;
 		bool				_OP;
 
-		Client();
 		Client(const Client& variant);
 		Client& operator=(const Client& other);
-
+		
 	public:
+		Client();
 
 		Client(int fd, const std::string& ip);
 		~Client();

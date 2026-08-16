@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Channel.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/05/24 21:28:58 by muokcan          ###   ########.fr       */
+/*   Updated: 2026/08/16 05:48:04 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 #include <vector>
 #include <iostream>
+#include <string>
 
 #include "../Client/Client.hpp"
 
@@ -24,19 +25,21 @@ class	Channel
 		std::string	_name;
 		std::string	_topic;
 		std::string	_key;
-
+	
 		bool	_isInviteOnly;
-		bool	_topicRestricted;
-		bool	_userLimit;
+		bool	_isTopicRestricted;
+		bool	_isUserLimit;
 
+		size_t	_userLimit;
+		
 		std::vector<Client *>	_members;
-		std::vector<Client *>	_operator;
-		std::vector<Client *>	_inviteUser;
+		std::vector<Client *>	_operators;
+		std::vector<Client *>	_inviteUsers;
 
-		Channel();
 		Channel(const Channel& variant);
 		Channel& operator=(const Channel& other);
 	public:
+		Channel();
 		Channel(const std::string& name);
 		~Channel();
 
@@ -46,6 +49,7 @@ class	Channel
 
 		bool		isInviteOnly()		const;
 		bool		isTopicRestricted()	const;
+		bool		isUserLimit()		const;
 		size_t		getUserLimit()		const;
 
 		const std::vector<Client *>	getMemberList() const;
@@ -56,9 +60,9 @@ class	Channel
 		void	setTopic(const std::string& topic);
 		void	setKey(const std::string& key);
 
-		void	setInviteOnly(bool status) const;
-		void	setTopicRestricted(bool status) const;
-		void	setUserLimit(size_t avarage) const;
+		void	setInviteOnly(bool& status);
+		void	setTopicRestricted(bool& status);
+		void	setUserLimit(size_t& limit);
 
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
@@ -66,11 +70,11 @@ class	Channel
 
 		void	addOperator(Client *client);
 		void	removeOperator(Client *client);
-		bool	isOperator(Client *client);
+		bool	isOperator(Client *client) const;
 
 		void	addInvite(Client *client);
 		void	removeInvite(Client *client);
-		bool	isInvite(Client *client);
+		bool	isInvite(Client *client) const;
 
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 };
