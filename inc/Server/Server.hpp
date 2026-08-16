@@ -66,4 +66,13 @@ class	Server
 		void				stop();
 };
 
+
+
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+
+
 #endif

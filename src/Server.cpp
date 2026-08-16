@@ -144,6 +144,7 @@ void	Server::_acceptClient()
 
 void	Server::_refuseClient(int fd)
 {
+	(void)fd;
 	std::cout << "refusing connect" << std::endl;
 }
 
