@@ -172,8 +172,19 @@ void	Server::_acceptClient()
 
 void	Server::_refuseClient(int fd)
 {
-	(void)fd;
-	std::cout << "refusing connect" << std::endl;
+
+	std::cout << "[Disconnected Client Connection]" << std::endl;
+	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
+	close (fd);
+
+	Client	*delClient = _clients.get(fd);
+	
+	if (delClient)
+	{
+		std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
+		delete delClient;
+		_clients.remove(fd);
+	}
 }
 
 void	Server::server_start()
