@@ -124,6 +124,7 @@ void	Server::_readerClient(int fd)
 	else
 	{
 		buffer[contentByte] = '\0';
+		std::cout << "> " << fd << ":" << buffer << std::endl; //DEBUG
 		Client	*newClient = _clients.get(fd);
 		if (newClient)
 		{
