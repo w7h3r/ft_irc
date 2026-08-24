@@ -160,31 +160,30 @@ void	Server::_acceptClient()
 		close(clientFd);
 		return ;
 	}
-
-	std::cout << "|========[Accepted New Client Connection]========|" << std::endl;
-	std::cout << ">" << clientFd << ":" << inet_ntoa(clientAdress.sin_addr) << std::endl;
-
-	//========================Her Client'ı temsilen yeni bir Client Objesi oluşturulur
 	
 	Client	*serverMember = new	Client(clientFd, inet_ntoa(clientAdress.sin_addr));
 	_clients.add(clientFd, serverMember);
+
+	std::cout << "|========[Accepted New Client Connection]========|" << std::endl;
+	std::cout << ">" << clientFd << ":" << inet_ntoa(clientAdress.sin_addr) << std::endl;
 }
 
 void	Server::_refuseClient(int fd)
 {
-
 	std::cout << "[Disconnected Client Connection]" << std::endl;
+	
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
 	close (fd);
 
+	std::cout << "epoll table removing finish" << std::endl;
 	Client	*delClient = _clients.get(fd);
-	
 	if (delClient)
 	{
 		std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
 		delete delClient;
 		_clients.remove(fd);
 	}
+	std::cout << " DEBUG: ERROR => Client removing not possible cache updated(please leakcheck)" << std::endl;
 }
 
 void	Server::server_start()
