@@ -12,6 +12,7 @@
 
 #include "../inc/Server/Server.hpp"
 #include <iostream>
+#include <stdexcept>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -20,6 +21,8 @@
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <stdexcept>
+#include <sys/types.h>
 #include <unistd.h>
 
 Server::Server(int port, const std::string& password) : 
@@ -95,7 +98,20 @@ void	Server::_initEpoll()
 
 void	Server::_writerClient(int fd)
 {
-
+		Client	*newClient = _clients.get(fd);
+		if (newClient)
+		{
+			std::string	&output = newClient->getWriteBuffer();
+			ssize_t	byteCount = send(fd, output.c_str(), output.size(), 0);
+			if (byteCount > 0)
+				output.erase(0, byteCount);
+			else if (byteCount <= 0)
+				_refuseClient(fd);
+			else
+			 	std::runtime_error("Error: _writerClient");
+		}
+		else
+			std::runtime_error("Error: _writerClient");
 }
 
 void	Server::_readerClient(int fd)
