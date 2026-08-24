@@ -12,12 +12,10 @@
 
 #include "../inc/Server/Server.hpp"
 #include <iostream>
-#include "../inc/Exception/Exception.hpp"
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <asm-generic/socket.h>
-#include <exception>
 #include <cerrno>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -95,6 +93,11 @@ void	Server::_initEpoll()
 	std::cout << "Epoll initilize successfuly" << std::endl;
 }
 
+void	Server::_writerClient(int fd)
+{
+
+}
+
 void	Server::_readerClient(int fd)
 {
 	char	buffer[1024];
@@ -104,8 +107,17 @@ void	Server::_readerClient(int fd)
 		_refuseClient(fd);
 	else
 	{
-		Client	*evClient = _clients.get(fd);
-		evClient->appendToReadBuffer(buffer);
+		buffer[contentByte] = '\0';
+		Client	*newClient = _clients.get(fd);
+		if (newClient)
+		{
+			newClient->appendToReadBuffer(buffer);
+			while (newClient->hasCompleteCommand())
+			{
+				std::string	rawCommands = newClient->extractCommand();
+				// TODO:Process Command Crate
+			}
+		}
 	};
 }
 
