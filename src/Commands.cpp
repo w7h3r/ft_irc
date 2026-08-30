@@ -6,20 +6,12 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/08/16 23:50:17 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/08/30 19:30:38 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Commands.hpp"
 
-
-Commands::Commands()
-{
-}
-
-Commands::~Commands()
-{
-}
 
 Channel *createChannel(std::string &name, std::string key)
 {
@@ -27,7 +19,7 @@ Channel *createChannel(std::string &name, std::string key)
     return (dummy);
 }
 
-Channel *Commands::getChannel(std::string &chnl_name) const
+Channel *getChannel(std::string &chnl_name) const
 {
     for (std::vector<Channel *>::const_iterator it = _channels.begin(); it < _channels.end(); it++)
     {
@@ -37,15 +29,15 @@ Channel *Commands::getChannel(std::string &chnl_name) const
     return (nullptr);
 }
 
-void    Commands::addChannel(Channel *chnl) { _channels.push_back(chnl); }
+void    addChannel(Channel *chnl) { _channels.push_back(chnl); }
 
-void    Commands::removeChannel(Channel *chnl)
+void    removeChannel(Channel *chnl)
 {
     for (std::vector<Channel *>::iterator it = _channels.begin(); *it != chnl;)
         (*it == chnl) ? _channels.erase(it) : it++;
 }
 
-void        Commands::cmdJoin(Client *client, struct Command cmd)
+void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
     Channel *chnl = getChannel(*(cmd.params.begin()));
     
@@ -62,7 +54,7 @@ void        Commands::cmdJoin(Client *client, struct Command cmd)
     chnl->addMember(client);
 }
 
-void        Commands::cmdKick(Client *client, struct Command cmd)
+void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
     Channel *chnl = getChannel(*(cmd.params.begin()));
     if (!chnl)
@@ -83,7 +75,7 @@ void        Commands::cmdKick(Client *client, struct Command cmd)
 // user channel'daysa
 // başarı olduysa RPL_INVITE
 
-void        Commands::cmdInvite(Client *client, struct Command cmd)
+void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
     if (!getChannel(*(cmd.params.begin() + 1))->isMember(client)) // check if OP on the channel
         return ; // need to return ERR_NOTONCHANNEL

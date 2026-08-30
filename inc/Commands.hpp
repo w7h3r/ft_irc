@@ -2,26 +2,16 @@
 #define COMMAND_H
 
 #include "Channel/Channel.hpp"
-#include <vector>
+#include "templates/TManager.hpp"
+Channel *getChannel(std::string &chnl_name);
+void    addChannel(Channel *chnl);
+void    removeChannel(Channel *chnl);
 
-class Commands
-{
-    private:
-        std::vector<Channel *> _channels;
-        // OCF
-    public:
-        Commands();
-        ~Commands();
-        // std::vector<Channel *> getChannels() const;
-        
-        Channel *getChannel(std::string &chnl_name) const;
-        void    addChannel(Channel *chnl);
-        void    removeChannel(Channel *chnl);
-		
-        
-		void	cmdJoin(Client *client, struct Command cmd);
-        void	cmdKick(Client *client, struct Command cmd);
-        void    cmdInvite(Client *clien, struct Command cmd);        
-};
+
+void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);
+void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);
+void    cmdInvite(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
+void    cmdTopic(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
+void    cmdMode(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
 
 #endif
