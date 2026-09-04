@@ -99,6 +99,8 @@ void	Server::_initEpoll()
 void	Server::_writerClient(int fd)
 {
 		Client	*newClient = _clients.get(fd);
+		if (newClient->getWriteBuffer().empty())
+			return ;
 		if (newClient)
 		{
 			std::string	&output = newClient->getWriteBuffer();
@@ -112,6 +114,81 @@ void	Server::_writerClient(int fd)
 		}
 		else
 			std::runtime_error("Error: _writerClient");
+}
+
+/* Added Temporarily */
+
+Channel *getChannel(std::string &chnl_name)
+{
+	(void)chnl_name;
+	return (NULL);
+}
+void    addChannel(Channel *chnl)
+{
+	(void)chnl;
+}
+void    removeChannel(Channel *chnl)
+{
+	(void)chnl;
+}
+
+
+void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	(void)client;
+	(void)cmd;
+	(void)clients;
+	(void)channels;
+	std::cout << "Processing JOIN Command" << std::endl;
+}
+void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	(void)client;
+	(void)cmd;
+	(void)clients;
+	(void)channels;
+	std::cout << "Processing KICK Command" << std::endl;
+}
+void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	(void)client;
+	(void)cmd;
+	(void)clients;
+	(void)channels;
+	std::cout << "Processing INVITE Command" << std::endl;
+}
+void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	(void)client;
+	(void)cmd;
+	(void)clients;
+	(void)channels;
+	std::cout << "Processing TOPIC Command" << std::endl;
+}
+void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	(void)client;
+	(void)cmd;
+	(void)clients;
+	(void)channels;
+	std::cout << "Processing MODE Command" << std::endl;
+}
+
+static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+	
+	if (cmd.type == "JOIN")
+		cmdJoin(client, cmd, clients, channels);
+	else if (cmd.type == "KICK")
+		cmdKick(client, cmd, clients, channels);
+	else if (cmd.type == "INVITE")
+		cmdInvite(client, cmd, clients, channels);
+	else if (cmd.type == "TOPIC")
+		cmdTopic(client, cmd, clients, channels);
+	else if (cmd.type == "MODE")
+		cmdMode(client, cmd, clients, channels);
+	else
+		std::cout << "Unknown Command: " << cmd.type << std::endl;
 }
 
 void	Server::_readerClient(int fd)
@@ -132,7 +209,8 @@ void	Server::_readerClient(int fd)
 			while (newClient->hasCompleteCommand())
 			{
 				std::string	rawCommands = newClient->extractCommand();
-				// TODO:Process Command Crate
+				decideCommand(newClient, newClient->parseMessage(rawCommands), _clients, _channel);
+				std::cout << "Processing Command: " << rawCommands << std::endl; //DEBUG
 			}
 		}
 	};
@@ -205,12 +283,15 @@ void	Server::server_start()
         for (int i = 0; i < eventCount; ++i) {
             int triggeredFd = _events[i].data.fd;
 
-            if (triggeredFd == _socket) {
+			if (triggeredFd == _socket)
                 _acceptClient();
-            }
-            else {
-                _readerClient(triggeredFd);
-            }
+			else
+			{
+				if (EPOLLIN & _events[i].events)
+					_readerClient(triggeredFd);
+				else if (EPOLLOUT & _events[i].events)
+					_writerClient(triggeredFd);
+			}
         }
 	}
 }

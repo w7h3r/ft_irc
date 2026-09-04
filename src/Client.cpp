@@ -148,13 +148,23 @@ static	bool	isValidUsername(const std::string& str)
 
 static	bool	isValidPassword(const std::string& str)
 {
-	// I'll go sleep, can't think about this stupid func.
-	(void)str;
+	if (str.empty())
+		return (false);
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
+			return (false);
+	}
 	return (true);
+}
+
+static	bool	hasRegistered(const Client* client)
+{
+	return (client->isRegistered());
 }
 
 bool	Client::hasValidCredentials() const
 {
-	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password));
+	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password) && hasRegistered(this));
 }
 
