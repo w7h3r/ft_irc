@@ -14,10 +14,9 @@
 # define SERVER_HPP
 
 # include "../Channel/Channel.hpp"
-# include <iostream>
-# include <sys/epoll.h>
 # include "../templates/TManager.hpp"
 # include "../Client/Client.hpp"
+# include <sys/epoll.h>
 
 # define LIVE 1
 # define DEAD 0
@@ -40,7 +39,7 @@ class	Server
 		TManager<int, Client *>	_clients;
 		TManager<std::string, Channel *> _channel;
 		
-		Server(); // BU KISMI BI TAM NETLE;
+		Server();
 		Server(const Server& variant);
 		Server& operator=(const Server& other);
 
@@ -55,6 +54,7 @@ class	Server
 		void	_readerClient(int fd);
 		void	_writerClient(int fd);
 
+		void	_processCommand(Client* client, const std::string& rawCommand);
 	public:
 		Server(int port, const std::string& password);
 		~Server();
@@ -68,5 +68,14 @@ class	Server
 		void				server_start();
 		void				stop();
 };
+
+
+
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+void	cmdAdd(struct Commond *commands);
+
 
 #endif

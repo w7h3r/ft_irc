@@ -80,7 +80,6 @@ class	Channel
 		
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 
-		// this aren't suppose to be a method
 };
 
 #endif
