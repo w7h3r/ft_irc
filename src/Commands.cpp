@@ -6,46 +6,50 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/08/30 19:30:38 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/05 23:41:30 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Commands.hpp"
 
 
-Channel *createChannel(std::string &name, std::string key)
+Channel *createChannel(std::string &name, std::string &key)
 {
     Channel *dummy =new Channel(name, key);
     return (dummy);
 }
 
-Channel *getChannel(std::string &chnl_name) const
+void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel *> channels)
 {
-    for (std::vector<Channel *>::const_iterator it = _channels.begin(); it < _channels.end(); it++)
-    {
-        if ((*it)->getName() == chnl_name)
-            return (*it);
-    }
-    return (nullptr);
+
+    chnl->addMember(client);
+    channels.add(chnl->getName(), chnl);
 }
 
-void    addChannel(Channel *chnl) { _channels.push_back(chnl); }
-
-void    removeChannel(Channel *chnl)
+void    removeChannel(Channel *chnl, TManager<std::string, Channel *> channels)
 {
-    for (std::vector<Channel *>::iterator it = _channels.begin(); *it != chnl;)
-        (*it == chnl) ? _channels.erase(it) : it++;
+    channels.remove(chnl->getKey());
 }
 
 void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
-    Channel *chnl = getChannel(*(cmd.params.begin()));
+    Channel *chnl = channels.get(*(cmd.params.begin()));
     
     if (chnl == nullptr)
     {
-        addChannel(createChannel(*(cmd.params.begin()), *(cmd.params.begin() + 1)));
-        (*_channels.end())->addMember(client);
+        Channel *newChnl = createChannel(*(cmd.params.begin()), *(cmd.params.begin() + 1));
+        channels.add(*(cmd.params.begin()), newChnl);
+        newChnl->addMember(client);
+        newChnl->addOperator(client);
         return ;
+    }
+    if (chnl->getKey() != *(cmd.params.begin() + 1))
+        return ; // need proper errno ERR_BADCHANNELKEY
+    if (chnl->isInviteOnly())
+    {
+        if (chnl->isInvite(client))
+            chnl->addMember(client);
+        return ; // need to return/expection proper errno ERR_INVITEONLYCHAN 
     }
     if (chnl->getUserLimit() == chnl->getMemberList().size() + 1)
         return ; // need to return proper errno

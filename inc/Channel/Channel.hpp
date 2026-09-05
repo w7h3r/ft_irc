@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/08/16 23:11:22 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/05 23:22:32 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ class	Channel
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
 		bool	isMember(Client *client) const;
-
+		
 		void	addOperator(Client *client);
 		void	removeOperator(Client *client);
 		bool	isOperator(Client *client) const;
@@ -77,6 +77,7 @@ class	Channel
 		void	removeInvite(Client *client);
 		bool	isInvite(Client *client) const;
 
+		
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 
 		// this aren't suppose to be a method

@@ -3,6 +3,7 @@
 
 #include "Channel/Channel.hpp"
 #include "templates/TManager.hpp"
+
 Channel *getChannel(std::string &chnl_name);
 void    addChannel(Channel *chnl);
 void    removeChannel(Channel *chnl);
