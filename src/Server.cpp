@@ -263,7 +263,7 @@ void	Server::_acceptClient()
 void	Server::_refuseClient(int fd)
 {
 	std::cout << "[Disconnected Client Connection]" << std::endl;
-	
+
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
 	close (fd);
 

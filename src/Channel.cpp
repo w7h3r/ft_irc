@@ -47,11 +47,13 @@ void        Channel::setTopicRestricted(bool& status) { _isTopicRestricted = sta
 void        Channel::setUserLimit(size_t& limit) { _userLimit = limit; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
+
 void        Channel::removeMember(Client *client)
 {
     for (std::vector<Client *>::iterator it = _members.begin(); it != _members.end();)
         (*it == client) ? _members.erase(it) : it++;
 }
+
 bool        Channel::isMember(Client *client) const
 {
     for (std::vector<Client *>::const_iterator it = _members.begin(); it != _members.end(); it++)
