@@ -36,6 +36,9 @@ class	Server
 		int					_epollFd;
 		struct	epoll_event	_events[MAX_EVENTS];
 
+		static	Server*		_instance;
+		static	void		_signalHandler(int signum);
+
 		TManager<int, Client *>	_clients;
 		TManager<std::string, Channel *> _channel;
 		
