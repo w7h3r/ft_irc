@@ -206,12 +206,18 @@ void	Server::_readerClient(int fd)
 		Client	*newClient = _clients.get(fd);
 		if (newClient)
 		{
+			std::cout << "new client has joined" << std::endl;
 			newClient->appendToReadBuffer(buffer);
 			while (newClient->hasCompleteCommand())
 			{
 				std::string	rawCommands = newClient->extractCommand();
 				decideCommand(newClient, newClient->parseMessage(rawCommands), _clients, _channel);
 				std::cout << "Processing Command: " << rawCommands << std::endl; //DEBUG
+				std::vector <std::string> param = newClient->parseMessage(rawCommands).params;
+				for (std::vector<std::string>::iterator it = param.begin(); it < param.end(); it++)
+				{
+					std::cout << "debug cmds " <<*it << std::endl;
+				}
 			}
 		}
 	};

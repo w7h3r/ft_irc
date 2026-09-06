@@ -40,7 +40,6 @@ public:
 		bool	exists(const K& key) const;
 		const	std::map<K, V>& getAll() const;
 		void	clearAll();
-		std::vector<V> getAllValues() const; // omer
 
 };
 

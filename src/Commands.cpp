@@ -11,10 +11,11 @@
 /* ************************************************************************** */
 
 #include "../inc/Commands.hpp"
-
+#include <sstream>
 
 Channel *createChannel(std::string &name, std::string &key)
 {
+
     Channel *dummy =new Channel(name, key);
     return (dummy);
 }
@@ -31,45 +32,117 @@ void    removeChannel(Channel *chnl, TManager<std::string, Channel *> channels)
     channels.remove(chnl->getKey());
 }
 
+std::vector<std::string> splitString(const std::string &str, char delimiter)
+{
+    std::vector<std::string> strs;
+    std::string buff;
+    std::istringstream TokenStream(str);
+    
+    while (std::getline(TokenStream, buff, delimiter))
+    {
+        if (!buff.empty())
+            strs.push_back(buff);
+    }
+    return (strs);
+}
+
+
+
 void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
-    Channel *chnl = channels.get(*(cmd.params.begin()));
-    
-    if (chnl == nullptr)
+    if (cmd.params.empty())
     {
-        Channel *newChnl = createChannel(*(cmd.params.begin()), *(cmd.params.begin() + 1));
-        channels.add(*(cmd.params.begin()), newChnl);
-        newChnl->addMember(client);
-        newChnl->addOperator(client);
+        errNeedMoreParams(client, cmd.type);
         return ;
     }
-    if (chnl->getKey() != *(cmd.params.begin() + 1))
-        return ; // need proper errno ERR_BADCHANNELKEY
-    if (chnl->isInviteOnly())
+
+    std::vector<std::string> targetChannels = splitString(*cmd.params.begin(), ',');
+    std::vector<std::string> targetChannelKeys;
+    if (cmd.params.size() > 1)
+        targetChannelKeys = splitString(*(cmd.params.begin() + 1), ',');
+    for (int i = 0; i < targetChannels.size(); i++)
     {
-        if (chnl->isInvite(client))
+        std::string channelName = targetChannels[i];
+        std::string channelKey = i < targetChannelKeys.size() ? targetChannelKeys[i] : "";
+
+        if (channelName.empty() || ((channelName[0] != '#') && (channelName[0] != '&')))
+        {
+            errNoSuchChannel(client, channelName);
+            continue;
+        }
+        Channel *chnl = channels.get(channelName);
+        if (!chnl)
+        {
+            chnl = createChannel(channelName, channelKey);
             chnl->addMember(client);
-        return ; // need to return/expection proper errno ERR_INVITEONLYCHAN 
+            chnl->addOperator(client);
+            channels.add(channelName, chnl);
+            continue;
+        }
+        if (!chnl->getKey().empty() && (chnl->getKey() != channelKey))
+        {
+            errBadChannelKey(client, channelName);
+            continue;
+        }
+        if (chnl->isInviteOnly() && !chnl->isInvite(client))
+        {
+            errInviteOnlyChan(client, channelName);
+            continue;
+        }
+        if (chnl->getUserLimit() == chnl->getMemberList().size())
+        {
+            errChannelIsFull(client, channelName);
+            continue;
+        }
+        // ERR_TOOMANYCHANNELS client katılabileceği max channel sayısına ulaştıysa döner. yapmak gerekiyor mu ?
+        chnl->addMember(client);
+        std::string chnlTopic = chnl->getTopic();
+        if (chnlTopic.empty())
+            rplNoTopic(client, channelName);
+        else
+            rplTopic(client, channelName, chnlTopic);
     }
-    if (chnl->getUserLimit() == chnl->getMemberList().size() + 1)
-        return ; // need to return proper errno
-    if (*(cmd.params.begin() + 1) != chnl->getKey())
-        return ; // need to return proper errno
-    chnl->addMember(client);
 }
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
-    Channel *chnl = getChannel(*(cmd.params.begin()));
-    if (!chnl)
-        return ; // need proper errno
-    if (!chnl->getMember(client->getUsername())) // check if who wants to kick in channel
-        return ; // need proper errno
-    if (!chnl->getMember(client->getUsername())->isOP()) // check if the user is OP
-        return ; // need proper errno
-    if (chnl->getMember(*(cmd.params.begin() + 1))) // check if the member who about the kicked in channel
-        return ; // need proper errno
-    chnl->removeMember(chnl->getMember(*(cmd.params.begin() + 1))); // kick the member from channel who given in a params + 1 
+    if (cmd.params.empty())
+    {
+        errNeedMoreParams(client, cmd.type);
+        return ;
+    }
+    std::string channelName = *cmd.params.begin();
+    if (channelName[0] != '#' && channelName[0] != '&')
+    {
+        errNoSuchChannel(client, channelName);
+        return ;
+    }
+    Channel *chnl = channels.get(channelName);
+    std::string targetName = *(cmd.params.begin() + 1);
+    std::map<int, Client *>allClients = clients.getAll();
+    Client  *target;
+    for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
+    {
+        target = it->second;
+        if (target->getUsername() == targetName)
+            break ;
+    }
+    if (!chnl->isMember(client))
+    {
+        errNotOnChannel(client, channelName);
+        return ;
+    }
+    if (!chnl->isOperator(client))
+    {
+        errChanOprivsNeeded(client, channelName);
+        return ;
+    }
+    if (!chnl->isMember(target))
+    {
+        errUserNotInChannel(client, targetName, channelName);
+        return ;
+    }
+    
 }
 
 

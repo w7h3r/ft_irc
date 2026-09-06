@@ -66,14 +66,4 @@ void TManager<K, V>::clearAll() {
     _data.clear();
 }
 
-template <typename K, typename V> // -omer
-std::vector<V> TManager<K, V>::getAllValues()
-{
-    std::vector<V> values;
-    std::map<K, V>::const_iterator it = _data.begin();
-    for (it; it < _data.end(); it++)
-        values.std::push_back(it->second);
-    return (values);
-}
-
 #endif

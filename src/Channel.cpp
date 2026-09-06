@@ -33,7 +33,7 @@ bool        Channel::isInviteOnly() const { return (_isInviteOnly); }
 bool        Channel::isTopicRestricted() const { return (_isTopicRestricted); }
 bool        Channel::isUserLimit() const { return (_isUserLimit); }
 
-size_t      Channel::getUserLimit() const { return ((_isUserLimit == 1) ? _userLimit : SIZE_T_MAX); }
+size_t      Channel::getUserLimit() const { return ((_isUserLimit == 1) ? _userLimit : __SIZE_MAX__); }
 
 const   std::vector<Client *> Channel::getMemberList() const { return (_members); }
 const   std::vector<Client *> Channel::getOperators() const {return (_operators); }
