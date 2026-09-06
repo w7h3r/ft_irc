@@ -76,4 +76,15 @@ static inline void  errChanOprivsNeeded(Client *client, const std::string &middl
     sendNumericReply(client, 482, middle, "You're not channel operator");
 }
 
+static inline void  errTooManyChannels(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 405, middle, "You have joined too many channels");
+}
+
+static inline void  kickMsg(Channel *chnl ,const std::string &kickerMask, const std::string &targetNick, const std::string &comment)
+{
+    std::string kickMsgStr = ":" + kickerMask + " KICK " + chnl->getName() + " " + targetNick + " :" + comment + "\r\n";
+    chnl->broadcast(kickMsgStr);
+}
+
 #endif

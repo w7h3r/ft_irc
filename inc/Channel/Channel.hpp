@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/05 23:22:32 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/06 22:35:57 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <string>
 
 #include "../Client/Client.hpp"
+#include "../templates/TManager.hpp"
 
 class	Channel
 {
@@ -77,7 +78,8 @@ class	Channel
 		void	removeInvite(Client *client);
 		bool	isInvite(Client *client) const;
 
-		
+		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> channels);
+
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 
 };
