@@ -3,6 +3,7 @@
 
 #include "Channel/Channel.hpp"
 #include "templates/TManager.hpp"
+#include <sstream>
 
 
 
