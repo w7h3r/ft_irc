@@ -97,6 +97,9 @@ class	Client
 		std::string		getUsername() const;
 		void			setUsername(const std::string& user);
 
+		std::string		getPassword() const;
+		void			setPassword(const std::string& password);
+
 		void			appendToReadBuffer(const std::string& data);
 		void			appendToWriteBuffer(const std::string& data);
 

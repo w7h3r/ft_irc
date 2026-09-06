@@ -175,10 +175,72 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> clie
 	std::cout << "Processing MODE Command" << std::endl;
 }
 
-static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
-	
-	if (cmd.type == "JOIN")
+	if (cmd.params.empty())
+		return ((void)(std::cout << "Error: PASS command missing password parameter" << std::endl));
+
+	if (cmd.params[0] == serverPassword)
+	{
+		client->setPassword(cmd.params[0]);
+		client->setConnState(WAITING_NICK);
+		std::cout << "Client " << client->getFd() << " provided correct password." << std::endl;
+	}
+	else
+	{
+		std::cout << "Client " << client->getFd() << " provided incorrect password." << std::endl;
+		client->setConnState(REFUSED);
+	}
+}
+void cmdNick(Client *client, struct Command cmd)
+{
+	if (cmd.params.empty())
+		return ((void)(std::cout << "Error: NICK command missing nickname parameter" << std::endl));
+
+	client->setNickname(cmd.params[0]);
+	if (client->getConnState() == WAITING_NICK)
+		client->setConnState(WAITING_INFO);
+	std::cout << "Client " << client->getFd() << " set nickname to: " << cmd.params[0] << std::endl;
+
+}
+void cmdUser(Client *client, struct Command cmd)
+{
+	if (cmd.params.empty())
+		return ((void)(std::cout << "Error: USER command missing username parameter" << std::endl));
+
+	client->setUsername(cmd.params[0]);
+	if (client->getConnState() == WAITING_INFO)
+	{
+		client->setConnState(ACCEPT);
+		std::cout << "BAGLANDI SUKSES" << std::endl;
+		std::cout << "Client " << client->getFd() << " set username to: " << cmd.params[0] << std::endl;
+		std::string welcomeMessage = ":ft_irc 001 " + client->getNickname() + " :Welcome to the IRC server " + client->getNickname() + "\r\n";
+		send(client->getFd(), welcomeMessage.c_str(), welcomeMessage.length(), 0);
+	}
+}
+void cmdCap(Client *client, struct Command cmd)
+{
+	if (!cmd.params.empty() && cmd.params[0] == "LS")
+	{
+		std::string capResponse = ":ft_irc CAP * LS :\r\n";
+		send(client->getFd(), capResponse.c_str(), capResponse.length(), 0);
+		std::cout << "Client " << client->getFd() << " requested CAP LS. Responded with: " << capResponse << std::endl;
+	}
+	else
+		return ((void)(std::cout << "Error: CAP command missing parameters" << std::endl));
+}
+
+static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels, const std::string& serverPassword)
+{
+	if (cmd.type == "PASS")
+		cmdPass(client, cmd, serverPassword);
+	else if (cmd.type == "NICK")
+		cmdNick(client, cmd);
+	else if (cmd.type == "USER")
+		cmdUser(client, cmd);
+	else if (cmd.type == "CAP")
+		cmdCap(client, cmd);
+	else if (cmd.type == "JOIN")
 		cmdJoin(client, cmd, clients, channels);
 	else if (cmd.type == "KICK")
 		cmdKick(client, cmd, clients, channels);
@@ -197,21 +259,24 @@ void	Server::_readerClient(int fd)
 	char	buffer[1024];
 
 	ssize_t	contentByte = recv(fd, buffer, sizeof(buffer) - 1, 0);
+	std::cout << contentByte << std::endl;
 	if (contentByte <= 0)
 		_refuseClient(fd);
 	else
 	{
 		buffer[contentByte] = '\0';
+		std::cout << "[" << buffer << "]" << std::endl;
 		std::cout << "> " << fd << ":" << buffer << std::endl; //DEBUG
 		Client	*newClient = _clients.get(fd);
 		if (newClient)
 		{
 			std::cout << "new client has joined" << std::endl;
 			newClient->appendToReadBuffer(buffer);
+
 			while (newClient->hasCompleteCommand())
 			{
 				std::string	rawCommands = newClient->extractCommand();
-				decideCommand(newClient, newClient->parseMessage(rawCommands), _clients, _channel);
+				decideCommand(newClient, newClient->parseMessage(rawCommands), _clients, _channel, _password);
 				std::cout << "Processing Command: " << rawCommands << std::endl; //DEBUG
 				std::vector <std::string> param = newClient->parseMessage(rawCommands).params;
 				for (std::vector<std::string>::iterator it = param.begin(); it < param.end(); it++)
@@ -248,6 +313,7 @@ void	Server::_acceptClient()
 	}
 	
 	Client	*serverMember = new	Client(clientFd, inet_ntoa(clientAdress.sin_addr));
+	serverMember->setConnState(WAITING_PASS);
 	_clients.add(clientFd, serverMember);
 
 	std::cout << "|========[Accepted New Client Connection]========|" << std::endl;
@@ -270,6 +336,7 @@ void	Server::_refuseClient(int fd)
 		_clients.remove(fd);
 	}
 	std::cout << " DEBUG: ERROR => Client removing not possible cache updated(please leakcheck)" << std::endl;
+	fd = -1;
 }
 
 void	Server::server_start()

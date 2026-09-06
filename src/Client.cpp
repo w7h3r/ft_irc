@@ -11,8 +11,10 @@
 /* ************************************************************************** */
 
 #include "../inc/Client/Client.hpp"
+#include <unistd.h>
 #include <vector>
 #include <sstream>
+#include <sys/socket.h>
 
 Client::Client() { }
 
@@ -33,7 +35,11 @@ Client::Client(int fd, const std::string &ip) :
 	_OP = false;
 }
 
-Client::~Client() { }
+Client::~Client()
+{
+	if (_fd != 0)
+		close(_fd);
+}
 
 int				Client::getFd() const { return (_fd); }
 
@@ -60,6 +66,9 @@ void			Client::setNickname(const std::string& nick) { _nickname = nick; }
 
 std::string		Client::getUsername() const { return (_name); }
 void			Client::setUsername(const std::string& userName) { _name = userName; }
+
+std::string		Client::getPassword() const { return (_password); }
+void			Client::setPassword(const std::string& password) { _password = password; }
 
 void			Client::appendToReadBuffer(const std::string& data) { _readBuffer += data; }
 void			Client::appendToWriteBuffer(const std::string& data) { _writeBuffer += data; }
@@ -159,13 +168,8 @@ static	bool	isValidPassword(const std::string& str)
 	return (true);
 }
 
-static	bool	hasRegistered(const Client* client)
-{
-	return (client->isRegistered());
-}
-
 bool	Client::hasValidCredentials() const
 {
-	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password) && hasRegistered(this));
+	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password));
 }
 
