@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Client/Client.hpp"
+#include <unistd.h>
 #include <vector>
 #include <sstream>
 
@@ -33,7 +34,11 @@ Client::Client(int fd, const std::string &ip) :
 	_OP = false;
 }
 
-Client::~Client() { }
+Client::~Client()
+{
+	if (_fd != -1)
+		close(_fd);
+}
 
 int				Client::getFd() const { return (_fd); }
 

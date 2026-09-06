@@ -49,6 +49,7 @@ Server::~Server()
 	if (_epollFd != -1){
 		close(_epollFd);
 	}
+	this->_clients.clearAll();
 	Server::_instance = NULL;
 }
 
