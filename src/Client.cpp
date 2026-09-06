@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:09 by muokcan           #+#    #+#             */
-/*   Updated: 2026/08/16 05:29:54 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/06 22:37:06 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,7 @@ Client::Client(int fd, const std::string &ip) :
 	_writeBuffer = "";
 	_readBuffer = "";
 	_OP = false;
+	_channelCount = 0;
 }
 
 Client::~Client()
@@ -73,6 +74,19 @@ std::string&	Client::getWriteBuffer() { return (_writeBuffer); }
 void			Client::clearWriteBuffer() { _writeBuffer.clear(); }
 
 bool			Client::hasCompleteCommand() const { return (_readBuffer.find("\r\n") != std::string::npos); }
+
+void			Client::incrementChannelCount() {
+	if (_channelCount < MAX_CHANNEL_COUNT)
+		_channelCount++;
+	return ;
+}
+void			Client::decrementChannelCount()
+{
+	if (_channelCount > 0)
+		_channelCount--;
+	return ;
+}
+int				Client::getChannelCount() const { return(_channelCount); }
 
 // This fuction is almost useless
 // then why do u even declare it ? -omer

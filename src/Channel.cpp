@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/08/16 23:11:44 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/06 22:36:39 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -79,6 +79,7 @@ bool        Channel::isOperator(Client *client) const
     }
     return (0);
 }
+
 // Invite control stuff (what the hell is invite ?)
 
 void        Channel::addInvite(Client *client) { _inviteUsers.push_back(client); }
@@ -97,3 +98,17 @@ bool        Channel::isInvite(Client *client) const
     return (0);
 }
 
+void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> channels)
+{
+    std::map<std::string, Channel *> allChannels = channels.getAll();
+
+    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); it++)
+    {
+        Channel *chnl = it->second;
+        if (chnl->isMember(client))
+            chnl->removeMember(client);
+        if (chnl->isOperator(client))
+            chnl->removeOperator(client);
+    }
+    delete client;
+}
