@@ -78,7 +78,7 @@ class	Channel
 		void	removeInvite(Client *client);
 		bool	isInvite(Client *client) const;
 
-		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> channels);
+		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels);
 
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 

@@ -58,6 +58,8 @@ class	Server
 		void	_writerClient(int fd);
 
 		void	_processCommand(Client* client, const std::string& rawCommand);
+	
+		void	deleteClientFromAllChannels(Client *client);
 	public:
 		Server(int port, const std::string& password);
 		~Server();

@@ -38,7 +38,7 @@ public:
 		void	remove(const K& key);
 		V		get(const K& key) const;
 		bool	exists(const K& key) const;
-		const	std::map<K, V>& getAll() const;
+		std::map<K, V>& getAll();
 		void	clearAll();
 
 };

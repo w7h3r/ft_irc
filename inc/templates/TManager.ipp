@@ -21,6 +21,6 @@ inline bool TManager<K, V>::exists(const K& key) const {
 }
 
 template <typename K, typename V>
-inline const std::map<K, V>& TManager<K, V>::getAll() const {
+inline std::map<K, V>& TManager<K, V>::getAll(){
     return _data;
 }

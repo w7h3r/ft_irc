@@ -260,18 +260,43 @@ void	Server::_acceptClient()
 	std::cout << ">" << clientFd << ":" << inet_ntoa(clientAdress.sin_addr) << std::endl;
 }
 
+void        Server::deleteClientFromAllChannels(Client *client)
+{
+	std::map<std::string, Channel *>	&allChannels = _channel.getAll();
+
+    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); )
+    {
+        Channel *chnl = it->second;
+        if (chnl)
+        {
+            if (chnl->isMember(client))
+                chnl->removeMember(client);
+            if (chnl->isOperator(client))
+                chnl->removeOperator(client);
+
+            if (chnl->getMemberList().empty())
+            {
+                delete chnl;
+				allChannels.erase(it++);
+                continue;
+            }
+        }
+        ++it;
+    }
+}
+
 void	Server::_refuseClient(int fd)
 {
 	std::cout << "[Disconnected Client Connection]" << std::endl;
 
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
-	close (fd);
 
 	std::cout << "epoll table removing finish" << std::endl;
 	Client	*delClient = _clients.get(fd);
 	if (delClient)
 	{
 		std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
+		deleteClientFromAllChannels(delClient);
 		delete delClient;
 		_clients.remove(fd);
 	}

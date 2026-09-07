@@ -98,7 +98,7 @@ bool        Channel::isInvite(Client *client) const
     return (0);
 }
 
-void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> channels)
+void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels)
 {
     std::map<std::string, Channel *> allChannels = channels.getAll();
 
