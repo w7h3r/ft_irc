@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Server/Server.hpp"
+#include "../inc/Commands.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
@@ -155,7 +156,6 @@ void    removeChannel(Channel *chnl)
 	(void)chnl;
 }
 
-
 void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
@@ -263,7 +263,7 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 	else if (cmd.type == "CAP")
 		cmdCap(client, cmd);
 	else if (cmd.type == "JOIN")
-		cmdJoin(client, cmd, clients, channels);
+		cmdJoin(client, cmd, channels);
 	else if (cmd.type == "KICK")
 		cmdKick(client, cmd, clients, channels);
 	else if (cmd.type == "INVITE")

@@ -112,3 +112,10 @@ void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::s
     }
     delete client;
 }
+
+void        Channel::broadcast(const std::string &message, Client *exclude)
+{
+    (void) message;
+    (void) exclude;
+};
+

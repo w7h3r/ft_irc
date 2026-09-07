@@ -60,7 +60,7 @@ Client      *getClient(std::string targetName, TManager<int, Client *> clients)
 }
 
 
-void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.empty())
     {
@@ -72,7 +72,7 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> 
     std::vector<std::string> targetChannelKeys;
     if (cmd.params.size() > 1)
         targetChannelKeys = splitString(*(cmd.params.begin() + 1), ',');
-    for (int i = 0; i < targetChannels.size(); i++)
+    for (size_t i = 0; i < targetChannels.size(); i++)
     {
         std::string channelName = targetChannels[i];
         std::string channelKey = i < targetChannelKeys.size() ? targetChannelKeys[i] : "";
@@ -121,7 +121,7 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> 
     }
 }
 
-void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.empty())
     {
@@ -134,7 +134,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
     {
         targets = splitString(*(cmd.params.begin() + 1), ',');   
     }
-    for (int i = 0; i < targets.size(); i++)
+    for (size_t i = 0; i < targets.size(); i++)
     {
         
         std::string channelName = targetChannels[i];
@@ -178,7 +178,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
 // user channel'daysa
 // başarı olduysa RPL_INVITE
 
-void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.size() != 2)
     {
@@ -208,5 +208,4 @@ void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *
         return ;
     }
     chnl->addInvite(target);
-    rplInviting(client, chnl->getName(), target->getNickname());
 }

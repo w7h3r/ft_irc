@@ -46,13 +46,15 @@ OBJ_DIR     = obj
 # Proje ilerledikçe kendi oluşturduğun header'ları buraya ekle
 HEADERS     = $(INC_DIR)/Server/Server.hpp \
               $(INC_DIR)/Client/Client.hpp \
-              $(INC_DIR)/Channel/Channel.hpp
+              $(INC_DIR)/Channel/Channel.hpp \
+			  $(INC_DIR)/Commands.hpp
 
 # Proje ilerledikçe kendi oluşturduğun cpp'leri buraya ekle
 SRC         = $(SRC_DIR)/main.cpp \
               $(SRC_DIR)/Server.cpp \
               $(SRC_DIR)/Client.cpp \
-              $(SRC_DIR)/Channel.cpp
+              $(SRC_DIR)/Channel.cpp \
+			  $(SRC_DIR)/Commands.cpp
 
 OBJS        = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
