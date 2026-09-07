@@ -115,6 +115,10 @@ void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::s
 
 void        Channel::broadcast(const std::string &message, Client *exclude)
 {
-    (void) message;
-    (void) exclude;
+    for (std::vector<Client *>::iterator it = _members.begin(); it < _members.end(); it++)
+    {
+        if (*it == exclude)
+            continue;
+        (*it)->appendToWriteBuffer(message);
+    }
 };
