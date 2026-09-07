@@ -31,6 +31,11 @@ static inline void  errNeedMoreParams(Client *client, const std::string &middle)
     sendNumericReply(client, 461, middle, "Not enough parameters");
 }
 
+static inline void  errNoSuchNick(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 401, middle, "No such nick/channel");
+}
+
 static inline void  errNoSuchChannel(Client *client, const std::string &middle)
 {
     sendNumericReply(client, 403, middle, "No such channel");
@@ -71,6 +76,11 @@ static inline void  errUserNotInChannel(Client *client, const std::string &middl
     sendNumericReply(client, 441, middle1 + " " + middle2, "They aren't on that channel");
 }
 
+static inline void  errUserOnChannel(Client *client, const std::string &middle1, const std::string &middle2)
+{
+    sendNumericReply(client, 443, middle1 + " " + middle2, "is already on channel");
+}
+
 static inline void  errChanOprivsNeeded(Client *client, const std::string &middle)
 {
     sendNumericReply(client, 482, middle, "You're not channel operator");
@@ -81,10 +91,16 @@ static inline void  errTooManyChannels(Client *client, const std::string &middle
     sendNumericReply(client, 405, middle, "You have joined too many channels");
 }
 
+static inline void  rplInviting(Client *client, std::string &middle1, std::string &middle2)
+{
+    sendNumericReply(client, 341, middle1 + " " + middle2, "");
+}
+
 static inline void  kickMsg(Channel *chnl ,const std::string &kickerMask, const std::string &targetNick, const std::string &comment)
 {
     std::string kickMsgStr = ":" + kickerMask + " KICK " + chnl->getName() + " " + targetNick + " :" + comment + "\r\n";
     chnl->broadcast(kickMsgStr);
 }
+
 
 #endif

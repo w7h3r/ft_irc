@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/06 22:37:25 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/06 23:33:49 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,18 @@ std::vector<std::string> splitString(const std::string &str, char delimiter)
     return (strs);
 }
 
+Client      *getClient(std::string targetName, TManager<int, Client *> clients)
+{
+    std::map<int, Client *> allClients = clients.getAll();
+    Client *target = NULL;
+    for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
+    {
+        target = it->second;
+        if  (target->getNickname() == targetName)   
+            return (target);
+    }
+    return (target);
+}
 
 
 void        cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
@@ -130,36 +142,29 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&'))
         {
             errNoSuchChannel(client, channelName);
-            return ;
+            continue; ;
         }
         Channel *chnl = channels.get(channelName);
-        std::map<int, Client *>allClients = clients.getAll();
-        Client  *target;
-        for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
-        {
-            target = it->second;
-            if (target->getUsername() == targetName)
-                break ;
-        }
+        Client  *target = getClient(targets[i], clients);
         if (!chnl->isMember(client))
         {
             errNotOnChannel(client, channelName);
-            return ;
+            continue; ;
         }
         if (!chnl->isOperator(client))
         {
             errChanOprivsNeeded(client, channelName);
-            return ;
+            continue; ;
         }
         if (!chnl->isMember(target))
         {
             errUserNotInChannel(client, targetName, channelName);
-            return ;
+            continue; ;
         }
         std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@127.0.0.1";
         std::string comment;
-        if (cmd.params.size() > 2 && !cmd.params[2].empty())
-            comment = *(cmd.params.begin() + 2);
+        if (!cmd.message.empty())
+            comment = cmd.message;
         kickMsg(chnl, kickerMask, targetName, comment);
         client->decrementChannelCount();
         chnl->removeMember(target);
@@ -175,10 +180,33 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
 
 void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
-    if (!getChannel(*(cmd.params.begin() + 1))->isMember(client)) // check if OP on the channel
-        return ; // need to return ERR_NOTONCHANNEL
-    if (!getChannel(*(cmd.params.begin() + 1))->isOperator(client)) // check if OP
-        return ; // need to return ERR_CHANOPRIVSNEEDED
-    // check if param username is exits for ERR_NOSUCHNICK
-    if (getChannel(*(cmd.params.begin() + 1))->isMember())
+    if (cmd.params.size() != 2)
+    {
+        errNeedMoreParams(client, cmd.type);
+        return ;
+    }
+    Client  *target = getClient(cmd.params[0], clients);
+    Channel *chnl = channels.get(cmd.params[1]);
+    if (chnl->isMember(client))
+    {
+        errNotOnChannel(client, chnl->getName());
+        return ;
+    }
+    if (!chnl->isOperator(client))
+    {
+        errChanOprivsNeeded(client, chnl->getName());
+        return ;
+    }
+    if (!target)
+    {
+        errNoSuchNick(client, client->getNickname());
+        return ;
+    }
+    if (chnl->isMember(target))
+    {
+        errUserOnChannel(target, target->getUsername(), chnl->getName());
+        return ;
+    }
+    chnl->addInvite(target);
+    rplInviting(client, chnl->getName(), target->getNickname());
 }
