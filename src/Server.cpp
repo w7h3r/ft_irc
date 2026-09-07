@@ -3,9 +3,9 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
+/*   By: alermi <alermi@student.42kocaeli.com       +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/05/24 21:16:05 by muokcan           #+#    #+#             */
+/*   Created: 2026/05/24 21:16:05 by alermi            #+#    #+#             */
 /*   Updated: 2026/08/17 00:22:33 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
@@ -16,7 +16,6 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <asm-generic/socket.h>
 #include <cerrno>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
@@ -103,27 +102,44 @@ void	Server::_initEpoll()
 	std::cout << "Epoll initilize successfuly" << std::endl;
 }
 
-void	Server::_writerClient(int fd)
+void	Server::_modifyEpoll(int fd, int events)
 {
-		Client	*newClient = _clients.get(fd);
-		if (newClient->getWriteBuffer().empty())
-			return ;
-		if (newClient)
-		{
-			std::string	&output = newClient->getWriteBuffer();
-			ssize_t	byteCount = send(fd, output.c_str(), output.size(), 0);
-			if (byteCount > 0)
-				output.erase(0, byteCount);
-			else if (byteCount <= 0)
-				_refuseClient(fd);
-			else
-			 	std::runtime_error("Error: _writerClient");
-		}
-		else
-			std::runtime_error("Error: _writerClient");
+	struct	epoll_event ev;
+
+	ev.events = events;
+	ev.data.fd = fd;
+
+	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev))
+	{
+		std::cerr << "Epoll Change Mode Error" << std::endl;
+	}
 }
 
-/* Added Temporarily */
+void	Server::_writerClient(int fd)
+{
+	Client	*newClient = _clients.get(fd);
+	if (!newClient)
+		return ;
+
+	std::string	&output = newClient->getWriteBuffer();
+
+	if (output.empty())
+	{
+		_modifyEpoll(fd, EPOLLIN);
+		return ;
+	}
+
+	ssize_t	byteCount = send(fd, output.c_str(), output.size(), 0);
+	
+	if (byteCount > 0)
+	{
+		output.erase(0, byteCount);
+		if (output.empty())
+			_modifyEpoll(fd, EPOLLIN);
+	}
+	else if (byteCount <= 0)
+		_refuseClient(fd);
+}
 
 Channel *getChannel(std::string &chnl_name)
 {
@@ -140,7 +156,7 @@ void    removeChannel(Channel *chnl)
 }
 
 
-void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
 	(void)cmd;
@@ -148,7 +164,7 @@ void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients
 	(void)channels;
 	std::cout << "Processing JOIN Command" << std::endl;
 }
-void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
 	(void)cmd;
@@ -156,7 +172,7 @@ void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients
 	(void)channels;
 	std::cout << "Processing KICK Command" << std::endl;
 }
-void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
 	(void)cmd;
@@ -164,7 +180,7 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> cl
 	(void)channels;
 	std::cout << "Processing INVITE Command" << std::endl;
 }
-void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
 	(void)cmd;
@@ -172,7 +188,7 @@ void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> cli
 	(void)channels;
 	std::cout << "Processing TOPIC Command" << std::endl;
 }
-void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
 	(void)cmd;
@@ -221,22 +237,22 @@ void cmdUser(Client *client, struct Command cmd)
 		std::cout << "BAGLANDI SUKSES" << std::endl;
 		std::cout << "Client " << client->getFd() << " set username to: " << cmd.params[0] << std::endl;
 		std::string welcomeMessage = ":ft_irc 001 " + client->getNickname() + " :Welcome to the IRC server " + client->getNickname() + "\r\n";
-		send(client->getFd(), welcomeMessage.c_str(), welcomeMessage.length(), 0);
-	}
-}
-void cmdCap(Client *client, struct Command cmd)
-{
-	if (!cmd.params.empty() && cmd.params[0] == "LS")
-	{
-		std::string capResponse = ":ft_irc CAP * LS :\r\n";
-		send(client->getFd(), capResponse.c_str(), capResponse.length(), 0);
-		std::cout << "Client " << client->getFd() << " requested CAP LS. Responded with: " << capResponse << std::endl;
-	}
-	else
-		return ((void)(std::cout << "Error: CAP command missing parameters" << std::endl));
+		client->appendToWriteBuffer(welcomeMessage);	}
 }
 
-static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels, const std::string& serverPassword)
+void cmdCap(Client *client, struct Command cmd)
+{
+    if (!cmd.params.empty() && cmd.params[0] == "LS")
+    {
+        std::string capResponse = ":ft_irc CAP * LS :\r\n";
+        client->appendToWriteBuffer(capResponse);
+        std::cout << "Client " << client->getFd() << " requested CAP LS. Responded with: " << capResponse << std::endl;
+    }
+    else
+        return ((void)(std::cout << "Error: CAP command missing parameters" << std::endl));
+}
+
+static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 	if (cmd.type == "PASS")
 		cmdPass(client, cmd, serverPassword);
@@ -265,33 +281,41 @@ void	Server::_readerClient(int fd)
 	char	buffer[1024];
 
 	ssize_t	contentByte = recv(fd, buffer, sizeof(buffer) - 1, 0);
-	std::cout << contentByte << std::endl;
 	if (contentByte <= 0)
+	{
 		_refuseClient(fd);
+	}
 	else
 	{
 		buffer[contentByte] = '\0';
-		std::cout << "[" << buffer << "]" << std::endl;
-		std::cout << "> " << fd << ":" << buffer << std::endl; //DEBUG
+		std::cout << "> " << fd << " (RECV): " << buffer << std::endl;
+
 		Client	*newClient = _clients.get(fd);
 		if (newClient)
 		{
-			std::cout << "new client has joined" << std::endl;
 			newClient->appendToReadBuffer(buffer);
 
 			while (newClient->hasCompleteCommand())
 			{
 				std::string	rawCommands = newClient->extractCommand();
-				decideCommand(newClient, newClient->parseMessage(rawCommands), _clients, _channel, _password);
-				std::cout << "Processing Command: " << rawCommands << std::endl; //DEBUG
-				std::vector <std::string> param = newClient->parseMessage(rawCommands).params;
-				for (std::vector<std::string>::iterator it = param.begin(); it < param.end(); it++)
+				Command cmd = newClient->parseMessage(rawCommands);
+				
+				std::cout << "Processing Command: " << rawCommands << std::endl; // DEBUG
+				
+				decideCommand(newClient, cmd, _clients, _channel, _password);
+
+				for (std::vector<std::string>::iterator it = cmd.params.begin(); it != cmd.params.end(); ++it)
 				{
-					std::cout << "debug cmds " <<*it << std::endl;
+					std::cout << "debug cmds: " << *it << std::endl;
 				}
 			}
+
+			if (!newClient->getWriteBuffer().empty())
+			{
+				_modifyEpoll(fd, EPOLLIN | EPOLLOUT);
+			}
 		}
-	};
+	}
 }
 
 void	Server::_acceptClient()
@@ -354,8 +378,9 @@ void        Server::deleteClientFromAllChannels(Client *client)
 void	Server::_refuseClient(int fd)
 {
 	std::cout << "[Disconnected Client Connection]" << std::endl;
+	struct	epoll_event	dummy;
 
-	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
+	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
 
 	std::cout << "epoll table removing finish" << std::endl;
 	Client	*delClient = _clients.get(fd);
@@ -366,7 +391,6 @@ void	Server::_refuseClient(int fd)
 		delete delClient;
 		_clients.remove(fd);
 	}
-	std::cout << " DEBUG: ERROR => Client removing not possible cache updated(please leakcheck)" << std::endl;
 	fd = -1;
 }
 
@@ -412,7 +436,7 @@ void	Server::server_start()
 			{
 				if (EPOLLIN & _events[i].events)
 					_readerClient(triggeredFd);
-				else if (EPOLLOUT & _events[i].events)
+				if (EPOLLOUT & _events[i].events)
 					_writerClient(triggeredFd);
 			}
         }

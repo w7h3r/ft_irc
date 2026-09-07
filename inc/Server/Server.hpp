@@ -58,6 +58,7 @@ class	Server
 		void	_writerClient(int fd);
 
 		void	_processCommand(Client* client, const std::string& rawCommand);
+		void	_modifyEpoll(int fd, int events);
 	
 		void	deleteClientFromAllChannels(Client *client);
 	public:
