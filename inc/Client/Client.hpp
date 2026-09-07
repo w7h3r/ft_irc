@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/08/16 05:35:26 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/06 22:36:13 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,8 @@
 
 #include <string>
 #include <vector>
+
+#define MAX_CHANNEL_COUNT 16
 
 enum	parseState
 {
@@ -62,7 +64,9 @@ class	Client
 		std::string			_writeBuffer;
 		std::string			_readBuffer;
 		bool				_OP;
-
+		
+		int					_channelCount;
+		
 		Client(const Client& variant);
 		Client& operator=(const Client& other);
 		
@@ -110,6 +114,10 @@ class	Client
 
 		bool			hasCompleteCommand() const;
 		std::string		extractCommand();
+
+		void			incrementChannelCount();
+		void			decrementChannelCount();
+		int				getChannelCount() const;
 
 		Command			parseMessage(const std::string& message);
 };

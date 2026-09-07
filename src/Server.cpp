@@ -25,6 +25,9 @@
 #include <sys/types.h>
 #include <string>
 #include <unistd.h>
+#include <csignal>
+
+Server	*Server::_instance = NULL;
 
 Server::Server(int port, const std::string& password) : 
     _port(port),
@@ -33,6 +36,7 @@ Server::Server(int port, const std::string& password) :
     _running(false),
     _epollFd(-1)
 {
+	Server::_instance = this;
     std::cout << "Server Constructor Called" << std::endl;
 }
 
@@ -45,6 +49,8 @@ Server::~Server()
 	if (_epollFd != -1){
 		close(_epollFd);
 	}
+	this->_clients.clearAll();
+	Server::_instance = NULL;
 }
 
 void	Server::_initSocket()
@@ -323,7 +329,7 @@ void	Server::_acceptClient()
 void	Server::_refuseClient(int fd)
 {
 	std::cout << "[Disconnected Client Connection]" << std::endl;
-	
+
 	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, NULL);
 	close (fd);
 
@@ -339,8 +345,26 @@ void	Server::_refuseClient(int fd)
 	fd = -1;
 }
 
+void	Server::_signalHandler(int signum)
+{
+	(void)signum;
+	std::cout << "SIGNAL HANDLED" << std::endl;
+
+	if (Server::_instance)
+	{
+		Server::_instance->_running = false;
+		if (Server::_instance->_socket != -1)
+		{
+			close(Server::_instance->_socket);
+			Server::_instance->_socket = -1;
+		}
+	}
+}
+
 void	Server::server_start()
 {
+	signal(SIGINT, Server::_signalHandler);
+	signal(SIGTERM, Server::_signalHandler);
 	_initSocket();
     _initEpoll();
 	int	eventCount;

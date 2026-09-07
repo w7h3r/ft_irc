@@ -63,6 +63,13 @@ V TManager<K, V>::get(const K& key) const {
 
 template <typename K, typename V>
 void TManager<K, V>::clearAll() {
+    typename std::map<K, V>::iterator it = _data.begin();
+    while (it != _data.end()) {
+        if (it->second) {
+            delete it->second;
+        }
+        ++it;
+    }
     _data.clear();
 }
 
