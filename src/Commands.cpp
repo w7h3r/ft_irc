@@ -82,13 +82,20 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
             errNoSuchChannel(client, channelName);
             continue;
         }
-        Channel *chnl = channels.get(channelName);
-        if (!chnl)
+        Channel *chnl;
+        try
+        {
+            chnl = channels.get(channelName);
+        }
+        catch (const std::exception &e)
         {
             chnl = createChannel(channelName, channelKey);
             chnl->addMember(client);
             chnl->addOperator(client);
             channels.add(channelName, chnl);
+            std::string clientMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+            std::string msg = ":" + clientMask + " " + cmd.type + " " + chnl->getName() + "\r\n";
+            chnl->broadcast(msg);
             continue;
         }
         if (!chnl->getKey().empty() && (chnl->getKey() != channelKey))
