@@ -155,31 +155,6 @@ void    removeChannel(Channel *chnl)
 {
 	(void)chnl;
 }
-
-void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing JOIN Command" << std::endl;
-}
-void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing KICK Command" << std::endl;
-}
-void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing INVITE Command" << std::endl;
-}
 void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;
