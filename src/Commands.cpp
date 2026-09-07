@@ -12,6 +12,7 @@
 
 #include "../inc/Commands.hpp"
 #include <sstream>
+#include <sys/socket.h>
 
 Channel *createChannel(std::string &name, std::string &key)
 {
@@ -83,20 +84,23 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
             continue;
         }
         Channel *chnl;
+        bool isNewChannel = 0;
         try
         {
             chnl = channels.get(channelName);
         }
         catch (const std::exception &e)
         {
+            std::cout << "DEBUG: from command join: " << isNewChannel << std::endl; 
+            isNewChannel = 1;
+        }
+        if (isNewChannel)
+        {
             chnl = createChannel(channelName, channelKey);
             chnl->addMember(client);
             chnl->addOperator(client);
             channels.add(channelName, chnl);
-            std::string clientMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-            std::string msg = ":" + clientMask + " " + cmd.type + " " + chnl->getName() + "\r\n";
-            chnl->broadcast(msg);
-            continue;
+
         }
         if (!chnl->getKey().empty() && (chnl->getKey() != channelKey))
         {
@@ -119,13 +123,48 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
             continue;
         }
         chnl->addMember(client);
-        client->incrementChannelCount();
+		std::string userPrefix = ":" + client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string joinMsg = userPrefix + " JOIN " + channelName + "\r\n";
+        client->appendToWriteBuffer(joinMsg);
+
         std::string chnlTopic = chnl->getTopic();
         if (chnlTopic.empty())
             rplNoTopic(client, channelName);
         else
             rplTopic(client, channelName, chnlTopic);
+
+        std::stringstream ss;
+        ss << ":server 353 " << client->getNickname() << " = " << channelName << " :@" << client->getNickname() << "\r\n";
+        ss << ":server 366 " << client->getNickname() << " " << channelName << " :End of /NAMES list.\r\n";
+
+        client->appendToWriteBuffer(ss.str());
     }
+}
+
+void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+{
+    if (cmd.params.size() != 2)
+    {
+        errNeedMoreParams(client, cmd.type);
+        return ;
+    }
+    Channel *chnl = NULL;
+    Client  *target;
+
+    try
+    {
+        chnl = channels.get(cmd.params[0]);
+    }
+    catch(const std::exception& e)
+    {
+        target = getClient(cmd.params[0], clients);
+    }
+    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+    std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
+    if (chnl != NULL)
+        chnl->broadcast(msg);
+    else
+        send(target->getFd(), msg.c_str(), msg.size(), 0);
 }
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)

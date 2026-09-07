@@ -11,12 +11,14 @@
 /* ************************************************************************** */
 
 #include "../inc/Channel/Channel.hpp"
+#include <sys/socket.h>
 
 Channel::Channel(const std::string &name, const std::string &key)
 {
     _name = name;
     _key = key;
     _isInviteOnly = 0;
+    _isUserLimit = 0;
     _isTopicRestricted = 0;
     _userLimit = 0;
 }
@@ -120,5 +122,6 @@ void        Channel::broadcast(const std::string &message, Client *exclude)
         if (*it == exclude)
             continue;
         (*it)->appendToWriteBuffer(message);
+        send((*it)->getFd(), message.c_str(), message.size(), 0);
     }
 };

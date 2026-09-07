@@ -14,7 +14,9 @@ void    removeChannel(Channel *chnl);
 
 void	cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
 void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
-void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
+void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void    cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);
+
 // void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 // void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 
