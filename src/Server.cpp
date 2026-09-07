@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Server/Server.hpp"
+#include "../inc/Commands.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
@@ -139,31 +140,6 @@ void    removeChannel(Channel *chnl)
 	(void)chnl;
 }
 
-
-void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing JOIN Command" << std::endl;
-}
-void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing KICK Command" << std::endl;
-}
-void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing INVITE Command" << std::endl;
-}
 void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
 {
 	(void)client;
@@ -236,7 +212,7 @@ void cmdCap(Client *client, struct Command cmd)
 		return ((void)(std::cout << "Error: CAP command missing parameters" << std::endl));
 }
 
-static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels, const std::string& serverPassword)
+static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 	if (cmd.type == "PASS")
 		cmdPass(client, cmd, serverPassword);
@@ -247,7 +223,7 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 	else if (cmd.type == "CAP")
 		cmdCap(client, cmd);
 	else if (cmd.type == "JOIN")
-		cmdJoin(client, cmd, clients, channels);
+		cmdJoin(client, cmd, channels);
 	else if (cmd.type == "KICK")
 		cmdKick(client, cmd, clients, channels);
 	else if (cmd.type == "INVITE")

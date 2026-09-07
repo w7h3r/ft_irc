@@ -12,11 +12,11 @@ void    addChannel(Channel *chnl);
 void    removeChannel(Channel *chnl);
 
 
-void	cmdJoin(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);
-void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);
-void    cmdInvite(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
-void    cmdTopic(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
-void    cmdMode(Client *clien, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels);  
+void	cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
+void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
+// void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
+// void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 
 
 static inline void  sendNumericReply(Client *client, int code, const std::string &middle, const std::string &trailing)
@@ -101,6 +101,5 @@ static inline void  kickMsg(Channel *chnl ,const std::string &kickerMask, const 
     std::string kickMsgStr = ":" + kickerMask + " KICK " + chnl->getName() + " " + targetNick + " :" + comment + "\r\n";
     chnl->broadcast(kickMsgStr);
 }
-
 
 #endif
