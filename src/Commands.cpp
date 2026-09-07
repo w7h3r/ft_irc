@@ -47,7 +47,7 @@ std::vector<std::string> splitString(const std::string &str, char delimiter)
     return (strs);
 }
 
-Client      *getClient(std::string targetName, TManager<int, Client *> clients)
+Client      *getClient(std::string targetName, TManager<int, Client *> &clients)
 {
     std::map<int, Client *> allClients = clients.getAll();
     Client *target = NULL;
@@ -141,30 +141,43 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
     }
 }
 
-void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> clients, TManager<std::string, Channel *> channels)
+void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
-    if (cmd.params.size() != 2)
+    std::cout << "YARRAK" << std::endl;
+    if (cmd.params.size() < 1)
     {
         errNeedMoreParams(client, cmd.type);
         return ;
     }
     Channel *chnl = NULL;
     Client  *target;
+    std::cout << "YARRAK2" << std::endl;
 
     try
     {
         chnl = channels.get(cmd.params[0]);
+        std::cout << "YARRAK3" << std::endl;
+        
     }
     catch(const std::exception& e)
     {
+        std::cout << e.what() << std::endl;
         target = getClient(cmd.params[0], clients);
+        std::cout << "IN_PRIV_MSG: " << target->getNickname() << std::endl;
     }
+    std::cout << "YARRAK4" << std::endl;
+
     std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+    std::cout << "YARRAK5" << std::endl;
     std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
+    std::cout << "YARRAK6" << std::endl;
+
     if (chnl != NULL)
-        chnl->broadcast(msg);
+        chnl->broadcast(msg, client);
     else
         send(target->getFd(), msg.c_str(), msg.size(), 0);
+    std::cout << "YARRAK7" << std::endl;
+
 }
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
