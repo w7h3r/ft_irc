@@ -299,7 +299,7 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     rplInviting(client, targetNick, chnlName);
 
     std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string inviteMsg = ":" + senderMask + " INVITE " + target->getNickname() + " :" + chnl->getName() + "\r\n";
+    std::string inviteMsg = ":" + senderMask + " INVITE " + target->getNickname() + " " + chnl->getName() + "\r\n";
     target->appendToWriteBuffer(inviteMsg);
 
 	if (Server::getInstance() != NULL) {
