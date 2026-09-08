@@ -67,7 +67,9 @@ class	Server
 
 		Client	*getClientByUsername(std::string &username); // -omer
 		std::vector<Client *> getAllClients() const; // -omer
-		
+
+		static	Server		*getInstance() { return _instance; }
+		void				enableWriteEvent(int fd);
 		int					getPort() const;
 		std::string			getPassword() const;
 		bool				running();

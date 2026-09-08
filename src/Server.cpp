@@ -116,30 +116,31 @@ void	Server::_modifyEpoll(int fd, int events)
 	}
 }
 
-void	Server::_writerClient(int fd)
+void    Server::_writerClient(int fd)
 {
-	Client	*newClient = _clients.get(fd);
-	if (!newClient)
-		return ;
+    if (!_clients.exists(fd))
+        return ;
 
-	std::string	&output = newClient->getWriteBuffer();
-
-	if (output.empty())
-	{
-		_modifyEpoll(fd, EPOLLIN);
-		return ;
-	}
-
-	ssize_t	byteCount = send(fd, output.c_str(), output.size(), 0);
-	
-	if (byteCount > 0)
-	{
-		output.erase(0, byteCount);
-		if (output.empty())
-			_modifyEpoll(fd, EPOLLIN);
-	}
-	else if (byteCount <= 0)
-		_refuseClient(fd);
+    Client    *newClient = _clients.get(fd);
+    if (!newClient)
+        return ;
+    std::string    &output = newClient->getWriteBuffer();
+    if (output.empty())
+    {
+        _modifyEpoll(fd, EPOLLIN);
+        return ;
+    }
+    ssize_t    byteCount = send(fd, output.c_str(), output.size(), 0);
+    if (byteCount > 0)
+    {
+        output.erase(0, byteCount);
+        if (output.empty())
+            _modifyEpoll(fd, EPOLLIN);
+    }
+    else if (byteCount == 0 || (byteCount < 0 && errno != EAGAIN && errno != EWOULDBLOCK))
+    {
+        _refuseClient(fd);
+    }
 }
 
 Channel *getChannel(std::string &chnl_name)
@@ -293,6 +294,11 @@ void	Server::_readerClient(int fd)
 			}
 		}
 	}
+}
+
+void	Server::enableWriteEvent(int fd)
+{
+	_modifyEpoll(fd, EPOLLIN | EPOLLOUT);
 }
 
 void	Server::_acceptClient()

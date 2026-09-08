@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Channel/Channel.hpp"
+#include "../inc/Server/Server.hpp"
 #include <sys/socket.h>
 
 Channel::Channel(const std::string &name, const std::string &key)
@@ -122,6 +123,8 @@ void        Channel::broadcast(const std::string &message, Client *exclude)
         if (*it == exclude)
             continue;
         (*it)->appendToWriteBuffer(message);
-        send((*it)->getFd(), message.c_str(), message.size(), 0);
+
+		if (Server::getInstance() != NULL)
+			Server::getInstance()->enableWriteEvent((*it)->getFd());
     }
 };

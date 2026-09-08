@@ -61,7 +61,7 @@ Client      *getClient(std::string targetName, TManager<int, Client *> &clients)
 }
 
 
-void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels)
+void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.empty())
     {
@@ -73,6 +73,7 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
     std::vector<std::string> targetChannelKeys;
     if (cmd.params.size() > 1)
         targetChannelKeys = splitString(*(cmd.params.begin() + 1), ',');
+
     for (size_t i = 0; i < targetChannels.size(); i++)
     {
         std::string channelName = targetChannels[i];
@@ -83,48 +84,66 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
             errNoSuchChannel(client, channelName);
             continue;
         }
+
         Channel *chnl;
-        bool isNewChannel = 0;
-        try
+
+        // 1. DURUM: KANAL HİÇ YOKSA (YENİ OLUŞTURMA)
+        if (!channels.exists(channelName))
         {
-            chnl = channels.get(channelName);
-        }
-        catch (const std::exception &e)
-        {
-            std::cout << "DEBUG: from command join: " << isNewChannel << std::endl; 
-            isNewChannel = 1;
-        }
-        if (isNewChannel)
-        {
+            if (client->getChannelCount() >= MAX_CHANNEL_COUNT)
+            {
+                errTooManyChannels(client, channelName);
+                continue;
+            }
+
             chnl = createChannel(channelName, channelKey);
             chnl->addMember(client);
             chnl->addOperator(client);
+            client->incrementChannelCount();
             channels.add(channelName, chnl);
+        }
+        // 2. DURUM: KANAL ZATEN VARSA (KATILMA)
+        else
+        {
+            chnl = channels.get(channelName);
 
+            // GÜVENLİK: Kullanıcı zaten kanaldaysa işlemi iptal et (Klonlanmayı önler)
+            if (chnl->isMember(client))
+                continue;
+
+            if (!chnl->getKey().empty() && (chnl->getKey() != channelKey))
+            {
+                errBadChannelKey(client, channelName);
+                continue;
+            }
+            if (chnl->isInviteOnly() && !chnl->isInvite(client))
+            {
+                errInviteOnlyChan(client, channelName);
+                continue;
+            }
+            if (chnl->getUserLimit() == chnl->getMemberList().size())
+            {
+                errChannelIsFull(client, channelName);
+                continue;
+            }
+            if (client->getChannelCount() >= MAX_CHANNEL_COUNT)
+            {
+                errTooManyChannels(client, channelName);
+                continue;
+            }
+
+            // Tüm kontroller geçildi, listeye ekle
+            chnl->addMember(client);
+            client->incrementChannelCount();
         }
-        if (!chnl->getKey().empty() && (chnl->getKey() != channelKey))
-        {
-            errBadChannelKey(client, channelName);
-            continue;
-        }
-        if (chnl->isInviteOnly() && !chnl->isInvite(client))
-        {
-            errInviteOnlyChan(client, channelName);
-            continue;
-        }
-        if (chnl->getUserLimit() == chnl->getMemberList().size())
-        {
-            errChannelIsFull(client, channelName);
-            continue;
-        }
-        if (client->getChannelCount() == MAX_CHANNEL_COUNT)
-        {
-            errTooManyChannels(client, channelName);
-            continue;
-        }
-        chnl->addMember(client);
-		std::string userPrefix = ":" + client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+
+        // ==========================================
+        // YANIT BÖLÜMÜ (Arayüzü tetikleyen kısım)
+        // ==========================================
+        std::string userPrefix = ":" + client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string joinMsg = userPrefix + " JOIN " + channelName + "\r\n";
+        
+        // Sadece client'a değil, kanaldaki herkese gönder (Gelecek adım: chnl->broadcast(joinMsg))
         client->appendToWriteBuffer(joinMsg);
 
         std::string chnlTopic = chnl->getTopic();
@@ -140,10 +159,8 @@ void        cmdJoin(Client *client, struct Command cmd, TManager<std::string, Ch
         client->appendToWriteBuffer(ss.str());
     }
 }
-
 void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
-    std::cout << "YARRAK" << std::endl;
     if (cmd.params.size() < 1)
     {
         errNeedMoreParams(client, cmd.type);
@@ -151,12 +168,10 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
     }
     Channel *chnl = NULL;
     Client  *target;
-    std::cout << "YARRAK2" << std::endl;
 
     try
     {
         chnl = channels.get(cmd.params[0]);
-        std::cout << "YARRAK3" << std::endl;
         
     }
     catch(const std::exception& e)
@@ -165,19 +180,14 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
         target = getClient(cmd.params[0], clients);
         std::cout << "IN_PRIV_MSG: " << target->getNickname() << std::endl;
     }
-    std::cout << "YARRAK4" << std::endl;
 
     std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::cout << "YARRAK5" << std::endl;
     std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
-    std::cout << "YARRAK6" << std::endl;
 
     if (chnl != NULL)
         chnl->broadcast(msg, client);
     else
-        send(target->getFd(), msg.c_str(), msg.size(), 0);
-    std::cout << "YARRAK7" << std::endl;
-
+		client->appendToReadBuffer(msg);
 }
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
