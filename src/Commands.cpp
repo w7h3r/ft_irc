@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Commands.hpp"
+#include "../inc/Server/Server.hpp"
 #include <sstream>
 #include <sys/socket.h>
 
@@ -86,8 +87,6 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
         }
 
         Channel *chnl;
-
-        // 1. DURUM: KANAL HİÇ YOKSA (YENİ OLUŞTURMA)
         if (!channels.exists(channelName))
         {
             if (client->getChannelCount() >= MAX_CHANNEL_COUNT)
@@ -102,12 +101,10 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
             client->incrementChannelCount();
             channels.add(channelName, chnl);
         }
-        // 2. DURUM: KANAL ZATEN VARSA (KATILMA)
         else
         {
             chnl = channels.get(channelName);
 
-            // GÜVENLİK: Kullanıcı zaten kanaldaysa işlemi iptal et (Klonlanmayı önler)
             if (chnl->isMember(client))
                 continue;
 
@@ -132,19 +129,14 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
                 continue;
             }
 
-            // Tüm kontroller geçildi, listeye ekle
             chnl->addMember(client);
             client->incrementChannelCount();
         }
 
-        // ==========================================
-        // YANIT BÖLÜMÜ (Arayüzü tetikleyen kısım)
-        // ==========================================
         std::string userPrefix = ":" + client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-        std::string joinMsg = userPrefix + " JOIN " + channelName + "\r\n";
         
-        // Sadece client'a değil, kanaldaki herkese gönder (Gelecek adım: chnl->broadcast(joinMsg))
-        client->appendToWriteBuffer(joinMsg);
+        std::string joinMsg = userPrefix + " JOIN :" + channelName + "\r\n";
+        chnl->broadcast(joinMsg);
 
         std::string chnlTopic = chnl->getTopic();
         if (chnlTopic.empty())
@@ -152,12 +144,27 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
         else
             rplTopic(client, channelName, chnlTopic);
 
-        std::stringstream ss;
-        ss << ":server 353 " << client->getNickname() << " = " << channelName << " :@" << client->getNickname() << "\r\n";
-        ss << ":server 366 " << client->getNickname() << " " << channelName << " :End of /NAMES list.\r\n";
+        std::string namesList = "";
+        std::vector<Client*> members = chnl->getMemberList();
+        for (size_t k = 0; k < members.size(); k++)
+        {
+            if (chnl->isOperator(members[k]))
+                namesList += "@";
+                
+            namesList += members[k]->getNickname();
+            
+            if (k != members.size() - 1)
+                namesList += " ";
+        }
 
+        std::stringstream ss;
+        ss << ":server 353 " << client->getNickname() << " = " << channelName << " :" << namesList << "\r\n";
+        ss << ":server 366 " << client->getNickname() << " " << channelName << " :End of /NAMES list.\r\n";
+        
         client->appendToWriteBuffer(ss.str());
-    }
+
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());    }
 }
 void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
@@ -247,16 +254,29 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
 // user channel'daysa
 // başarı olduysa RPL_INVITE
 
-void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.size() != 2)
     {
         errNeedMoreParams(client, cmd.type);
         return ;
     }
-    Client  *target = getClient(cmd.params[0], clients);
+
+    if (!channels.exists(cmd.params[1]))
+    {
+        errNoSuchChannel(client, cmd.params[1]);
+        return ;
+    }
+    
     Channel *chnl = channels.get(cmd.params[1]);
-    if (chnl->isMember(client))
+    Client  *target = getClient(cmd.params[0], clients);
+
+    if (!target)
+    {
+        errNoSuchNick(client, cmd.params[0]);
+        return ;
+    }
+    if (!chnl->isMember(client))
     {
         errNotOnChannel(client, chnl->getName());
         return ;
@@ -266,15 +286,23 @@ void        cmdInvite(Client *client, struct Command cmd, TManager<int, Client *
         errChanOprivsNeeded(client, chnl->getName());
         return ;
     }
-    if (!target)
-    {
-        errNoSuchNick(client, client->getNickname());
-        return ;
-    }
     if (chnl->isMember(target))
     {
-        errUserOnChannel(target, target->getUsername(), chnl->getName());
+        errUserOnChannel(client, target->getNickname(), chnl->getName());
         return ;
     }
+
     chnl->addInvite(target);
+
+    std::string targetNick = target->getNickname();
+    std::string chnlName = chnl->getName();
+    rplInviting(client, targetNick, chnlName);
+
+    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+    std::string inviteMsg = ":" + senderMask + " INVITE " + target->getNickname() + " :" + chnl->getName() + "\r\n";
+    target->appendToWriteBuffer(inviteMsg);
+
+	if (Server::getInstance() != NULL) {
+	    Server::getInstance()->enableWriteEvent(target->getFd());
+	}
 }
