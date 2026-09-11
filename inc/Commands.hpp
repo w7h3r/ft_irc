@@ -16,6 +16,8 @@ void	cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *
 void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void        cmdList(TManager<int, Client *> clients);
+
 
 // void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 // void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
@@ -91,6 +93,26 @@ static inline void  errChanOprivsNeeded(Client *client, const std::string &middl
 static inline void  errTooManyChannels(Client *client, const std::string &middle)
 {
     sendNumericReply(client, 405, middle, "You have joined too many channels");
+}
+
+static inline void  errNoRecipient(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 411, "", "No recipient given " + '(' + middle + ')');
+}
+
+static inline void  errCannotSendToChan(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 404, middle, "Cannot send to channel");
+}
+
+static inline void  errTooManyTargets(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 407, middle, "Duplicate recipients. No message \\");
+}
+
+static inline void  errNoTextToSend(Client *client)
+{
+    sendNumericReply(client, 412, "", "");
 }
 
 static inline void  rplInviting(Client *client, std::string &middle1, std::string &middle2)

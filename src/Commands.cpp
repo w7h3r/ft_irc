@@ -164,37 +164,85 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
         client->appendToWriteBuffer(ss.str());
 
         if (Server::getInstance() != NULL)
-            Server::getInstance()->enableWriteEvent(client->getFd());    }
+            Server::getInstance()->enableWriteEvent(client->getFd());    
+    }
 }
+
 void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.size() < 1)
     {
-        errNeedMoreParams(client, cmd.type);
+        errNoRecipient(client, cmd.type);
         return ;
     }
+    if (cmd.message.empty())
+    {
+        errNoTextToSend(client);
+        return ;
+    }
+
     Channel *chnl = NULL;
     Client  *target;
 
-    try
+    std::vector<std::string> targets = splitString(cmd.params[0], ',');
+
+    for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
     {
-        chnl = channels.get(cmd.params[0]);
+        for (std::vector<std::string>::iterator it_2 = it + 1; it_2 < targets.end(); it_2++)
+        {
+            if (*it == *it_2)
+            {
+                errTooManyTargets(client, *it);
+                return ;
+            }
+        }
+    }
+    
+    for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
+    {
+        if ((*it)[0] == '#' || (*it)[0] == '&')
+        {
+            try
+            {
+                chnl = channels.get((*it));
+                if (!chnl->isMember(client))
+                {
+                    errCannotSendToChan(client, chnl->getName());
+                }
+            }
+            catch (const std::exception &e)
+            {
+                errNoSuchChannel(client, (*it));
+                continue ;
+            }
+        }
+        target = getClient((*it), clients);
+        if (!target)
+        {
+            errNoSuchNick(client, (*it));
+            continue;
+        }
+        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
+    
+        if (chnl != NULL)
+            chnl->broadcast(msg, client);
+        else
+            target->appendToWriteBuffer(msg);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(target->getFd());
         
     }
-    catch(const std::exception& e)
+}
+
+void        cmdList(TManager<int, Client *> clients)
+{
+    std::map<int, Client *> allClients = clients.getAll();
+    for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
     {
-        std::cout << e.what() << std::endl;
-        target = getClient(cmd.params[0], clients);
-        std::cout << "IN_PRIV_MSG: " << target->getNickname() << std::endl;
+        Client *target = it->second;
+        std::cout << "Nickname = " + target->getNickname() << " FD = " << target->getFd() << std::endl;
     }
-
-    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
-
-    if (chnl != NULL)
-        chnl->broadcast(msg, client);
-    else
-		client->appendToReadBuffer(msg);
 }
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
@@ -220,7 +268,16 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errNoSuchChannel(client, channelName);
             continue; ;
         }
-        Channel *chnl = channels.get(channelName);
+        Channel *chnl;
+        try
+        {
+            chnl = channels.get(channelName); // verdiği format doğru olabilir ama channel olmayabilir.
+        }
+        catch(const std::exception& e)
+        {
+            errNoSuchChannel(client, channelName);
+            continue;
+        }
         Client  *target = getClient(targets[i], clients);
         if (!chnl->isMember(client))
         {
@@ -246,13 +303,6 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         chnl->removeMember(target);
     }
 }
-
-
-// komutu kullanan channel'da değilse
-// OP değilse
-// böyle bir nick yoksa (user yoksa)
-// user channel'daysa
-// başarı olduysa RPL_INVITE
 
 void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {

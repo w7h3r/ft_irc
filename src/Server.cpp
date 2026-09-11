@@ -250,6 +250,8 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		cmdMode(client, cmd, clients, channels);
 	else if (cmd.type == "PRIVMSG")
 		cmdPrivMsg(client, cmd, clients, channels);
+	else if (cmd.type == "omer")
+		cmdList(clients);
 	else
 		std::cout << "Unknown Command: " << cmd.type << std::endl;
 }
