@@ -18,6 +18,8 @@
 #include <cstdlib>
 #include <sys/socket.h>
 
+
+
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	if (cmd.params.size() < 2)
@@ -90,23 +92,10 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errUserNotInChannel(client, targetName, channelName);
             continue ;
         }
-			if (chnl->isOperator(target))
-			{
-				chnl->removeOperator(target);
-				if (chnl->getMemberList().size() > 1 && chnl->getOperators().empty())
-				{
-					Client *opTarget;
-					if (*chnl->getMemberList().begin() == target)
-						opTarget = *(chnl->getMemberList().begin() + 1);
-					else
-						opTarget = *chnl->getMemberList().begin();
-					std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " +o " + opTarget->getNickname() + "\r\n";
-				chnl->broadcast(opMsg);
-				chnl->addOperator(opTarget);
-			}
+		if (chnl->isOperator(target))
+			transferOp(client, chnl, target);
 
-		}
-        std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+		std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string comment;
         if (!cmd.message.empty())
             comment = cmd.message;

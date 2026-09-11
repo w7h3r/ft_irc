@@ -48,6 +48,8 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
             errNotOnChannel(client, *it);
             continue;
         }
+        if (chnl->isOperator(client))
+            transferOp(client, chnl, client);
         std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string partMsg = ":" + senderMask + " PART " + *it + "\r\n"; 
         chnl->broadcast(partMsg);

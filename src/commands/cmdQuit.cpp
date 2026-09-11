@@ -14,6 +14,7 @@
 #include "../../inc/Channel/Channel.hpp"
 #include "../../inc/Server/Server.hpp"
 #include "../../inc/Commands.hpp"
+#include "../../inc/utils.hpp"
 #include <iostream>
 #include <climits>
 #include <cstdlib>
@@ -86,6 +87,8 @@ void cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *
 
         if (chnl->isMember(client))
         {
+            if (chnl->isOperator(client))
+                transferOp(client, chnl, client);
             chnl->broadcast(quitMsg, client);
             
             std::vector<Client*> members = chnl->getMemberList();
