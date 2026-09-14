@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/06 22:36:39 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 02:25:34 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,6 +50,15 @@ void        Channel::setTopicRestricted(bool& status) { _isTopicRestricted = sta
 void        Channel::setUserLimit(size_t& limit) { _userLimit = limit; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
+
+Client      *Channel::getMember(const std::string &nick) const
+{
+    for (std::vector<Client *>::const_iterator it = _members.begin(); it < _members.end(); it++)
+    {
+        if ((*it)->getNickname() == nick)
+            return *it;
+    }
+}
 
 void        Channel::removeMember(Client *client)
 {

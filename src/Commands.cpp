@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/06 23:33:49 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 02:22:39 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -428,4 +428,35 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
 	if (Server::getInstance() != NULL) {
 	    Server::getInstance()->enableWriteEvent(target->getFd());
 	}
+}
+
+
+void    cmdPart(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+    if (cmd.params.size() < 1)
+    {
+        errNeedMoreParams(client, cmd.type);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+    }
+    std::vector<std::string> targets = splitString(cmd.params[0], ',');   
+
+    for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
+    {
+        Channel *chnl;
+        try 
+        {
+            chnl = channels.get(*it);
+        } 
+        catch (const std::exception &e) 
+        {
+            errNoSuchChannel(client, *it);
+            continue;
+        }
+        if (!chnl->getMember(client->getNickname()))
+        {
+            errNotOnChannel(client, *it);
+            continue;
+        }
+    }
 }
