@@ -156,14 +156,7 @@ void    removeChannel(Channel *chnl)
 {
 	(void)chnl;
 }
-void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing TOPIC Command" << std::endl;
-}
+
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
 	(void)client;

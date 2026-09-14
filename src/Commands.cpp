@@ -235,6 +235,79 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
     }
 }
 
+
+void cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+	(void) clients;
+    if (cmd.params.size() < 1)
+    {
+        errNeedMoreParams(client, cmd.type);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+
+    std::string channelName = cmd.params[0];
+    Channel *target = NULL;
+
+    try
+    {
+        target = channels.get(channelName); 
+    }
+    catch (const std::exception &e)
+    {
+        errNoSuchChannel(client, channelName);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+    if (!target->isMember(client))
+    {
+        errNotOnChannel(client, channelName);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+
+    bool isViewing = (cmd.params.size() == 1 && cmd.message.empty());
+
+    if (isViewing)
+    {
+        if (target->getTopic().empty())
+            rplNoTopic(client, channelName);
+        else
+            rplTopic(client, channelName, target->getTopic());
+        
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+    }
+    else
+    {
+        std::string newTopic = "";
+        if (!cmd.message.empty())
+            newTopic = cmd.message;
+        else if (cmd.params.size() > 1)
+            newTopic = cmd.params[1];
+
+        // Yetki kontrolü (Kanal sınıfınızda hasTopicRestriction ve isOperator metodları tanımlıysa)
+        /*
+        if (target->isTopicRestricted() && !target->isOperator(client))
+        {
+            errChanOprivsNeeded(client, channelName);
+            if (Server::getInstance() != NULL)
+                Server::getInstance()->enableWriteEvent(client->getFd());
+            return;
+        }
+        */
+
+        target->setTopic(newTopic);
+        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string broadcastMsg = ":" + senderMask + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+
+        target->broadcast(broadcastMsg, NULL);
+    }
+}
+
 void        cmdList(TManager<int, Client *> clients)
 {
     std::map<int, Client *> allClients = clients.getAll();
