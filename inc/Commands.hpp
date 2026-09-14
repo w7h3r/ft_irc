@@ -4,6 +4,7 @@
 #include "Channel/Channel.hpp"
 #include "templates/TManager.hpp"
 #include <sstream>
+#include <stdexcept>
 
 
 
@@ -22,6 +23,8 @@ void        cmdList(TManager<int, Client *> clients);
 void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 // void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 
+
+void	cmdQuit(Client *client, struct Command cmd,TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 
 static inline void  sendNumericReply(Client *client, int code, const std::string &middle, const std::string &trailing)
 {

@@ -288,9 +288,7 @@ void cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clien
             newTopic = cmd.message;
         else if (cmd.params.size() > 1)
             newTopic = cmd.params[1];
-
-        // Yetki kontrolü (Kanal sınıfınızda hasTopicRestriction ve isOperator metodları tanımlıysa)
-        /*
+        
         if (target->isTopicRestricted() && !target->isOperator(client))
         {
             errChanOprivsNeeded(client, channelName);
@@ -298,7 +296,7 @@ void cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clien
                 Server::getInstance()->enableWriteEvent(client->getFd());
             return;
         }
-        */
+    
 
         target->setTopic(newTopic);
         std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
@@ -308,6 +306,38 @@ void cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clien
     }
 }
 
+void cmdQuit(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+	(void) clients;
+    std::string reason = "Client exited";
+    if (!cmd.message.empty())
+        reason = cmd.message;
+    else if (cmd.params.size() > 0)
+        reason = cmd.params[0];
+
+    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+    std::string quitMsg = ":" + senderMask + " QUIT :" + reason + "\r\n";
+
+    std::map<std::string, Channel*> &allChannels = channels.getAll();
+    for (std::map<std::string, Channel*>::iterator it = allChannels.begin(); it != allChannels.end(); ++it)
+    {
+        Channel *chnl = it->second;
+
+        if (chnl->isMember(client))
+        {
+            chnl->broadcast(quitMsg, client);
+            
+            std::vector<Client*> members = chnl->getMemberList();
+            for (size_t i = 0; i < members.size(); i++)
+            {
+                if (members[i]->getFd() != client->getFd() && Server::getInstance() != NULL)
+                {
+                    Server::getInstance()->enableWriteEvent(members[i]->getFd());
+                }
+            }
+        }
+    }
+}
 void        cmdList(TManager<int, Client *> clients)
 {
     std::map<int, Client *> allClients = clients.getAll();
