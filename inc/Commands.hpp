@@ -18,6 +18,7 @@ void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &client
 void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
 void    cmdList(TManager<int, Client *> clients);
 
 

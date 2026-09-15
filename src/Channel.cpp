@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/15 19:56:39 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 20:03:11 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,6 +58,7 @@ Client      *Channel::getMember(const std::string &nick) const
         if ((*it)->getNickname() == nick)
             return *it;
     }
+    return NULL;
 }
 
 void        Channel::removeMember(Client *client)

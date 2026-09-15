@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:05 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/15 19:58:10 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 20:43:29 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -156,17 +156,17 @@ void    removeChannel(Channel *chnl)
 {
 	(void)chnl;
 }
-void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+// void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 
-void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing TOPIC Command" << std::endl;
-	std::cout << "Processing MODE Command" << std::endl;
-}
+// void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+// {
+// 	(void)client;
+// 	(void)cmd;
+// 	(void)clients;
+// 	(void)channels;
+// 	std::cout << "Processing TOPIC Command" << std::endl;
+// 	std::cout << "Processing MODE Command" << std::endl;
+// }
 
 void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
@@ -248,6 +248,8 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		cmdPrivMsg(client, cmd, clients, channels);
 	else if (cmd.type == "QUIT")
 		cmdQuit(client, cmd, clients, channels);
+	else if (cmd.type == "PART")
+		cmdPart(client, cmd, channels);
 	else if (cmd.type == "omer")
 		cmdList(clients);
 	else
@@ -298,7 +300,11 @@ void	Server::_readerClient(int fd)
 
 void	Server::enableWriteEvent(int fd)
 {
+	std::cout << "YARAK18" << std::endl;
+	
 	_modifyEpoll(fd, EPOLLIN | EPOLLOUT);
+	std::cout << "YARAK19" << std::endl;
+
 }
 
 void	Server::_acceptClient()

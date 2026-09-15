@@ -6,11 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-<<<<<<< HEAD
-/*   Updated: 2026/09/13 16:48:09 by oozsipah         ###   ########.fr       */
-=======
-/*   Updated: 2026/09/15 02:35:39 by oozsipah         ###   ########.fr       */
->>>>>>> e6a4a939b3dd67560f8a3f713e36449b1f4ba59d
+/*   Updated: 2026/09/15 20:56:29 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -174,71 +170,104 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
 
 void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
+    std::cout << "YARAK1" << std::endl;
     if (cmd.params.size() < 1)
     {
         errNoRecipient(client, cmd.type);
         return ;
     }
+    std::cout << "YARAK2" << std::endl;
     if (cmd.message.empty())
     {
         errNoTextToSend(client);
         return ;
     }
-
+    std::cout << "YARAK3" << std::endl;
     Channel *chnl = NULL;
     Client  *target = NULL;
 
     std::vector<std::string> targets = splitString(cmd.params[0], ',');
+    std::cout << "YARAK4" << std::endl;
 
     for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
     {
+        std::cout << "YARAK5" << std::endl;
+
         for (std::vector<std::string>::iterator it_2 = it + 1; it_2 < targets.end(); it_2++)
         {
+            std::cout << "YARAK6" << std::endl;
+
             if (*it == *it_2)
             {
                 errTooManyTargets(client, *it);
                 return ;
             }
+            std::cout << "YARAK7" << std::endl;
+
         }
     }
     
     for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
     {
+        std::cout << "YARAK8" << std::endl;
+
         if ((*it)[0] == '#' || (*it)[0] == '&')
         {
+            std::cout << "YARAK9" << std::endl;
+
             try
             {
+            std::cout << "YARAK10" << std::endl;
+                
                 chnl = channels.get((*it));
                 if (!chnl->isMember(client))
                 {
                     errCannotSendToChan(client, chnl->getName());
+                    continue;
                 }
+                std::cout << "YARAK11" << std::endl;
+
                 goto send_msg;
+                std::cout << "YARAK12 (yazdırılmaması lazım)" << std::endl;
+
             }
             catch (const std::exception &e)
             {
+                std::cout << "YARAK13" << std::endl;
+
                 errNoSuchChannel(client, *it);
                 continue ;
             }
         }
         target = getClient((*it), clients);
+        std::cout << "YARAK14" << std::endl;
+        
         if (!target)
         {
+
             std::cout << "DEBUG: NICK BULUNAMADI" << std::endl;
             errNoSuchNick(client, *it);
             continue;
         }
 
         send_msg:
+        std::cout << "YARAK15" << std::endl;
+
         // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string msg = ":" + client->getMask() + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
         
         if (chnl != NULL)
+        {
             chnl->broadcast(msg, client);
+            continue;
+        }
         else
             target->appendToWriteBuffer(msg);
+        std::cout << "YARAK16" << std::endl;
+        
         if (Server::getInstance() != NULL)
             Server::getInstance()->enableWriteEvent(target->getFd());
+        std::cout << "YARAK17" << std::endl;
         
     }
 }
@@ -571,7 +600,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
     }
 }
 
-void    cmdPart(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.size() < 1)
     {
