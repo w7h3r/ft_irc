@@ -608,6 +608,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
     }
     bool setFlag = true;
     size_t argIndex = 2;
+	std::string		absoluteEmptiness;
     
     for (size_t i = 0; i < cmd.params[1].length(); i++)
     {
@@ -642,7 +643,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
         }
         else if (op == 'l' && !setFlag)
         {
-            channelModeLimit(client, "", chnl, setFlag);
+            channelModeLimit(client, absoluteEmptiness, chnl, setFlag);
         }
         else
             errUnknownMode(client, op);
