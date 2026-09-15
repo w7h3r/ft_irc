@@ -92,8 +92,6 @@ void			Client::decrementChannelCount()
 }
 int				Client::getChannelCount() const { return(_channelCount); }
 
-// This fuction is almost useless
-// then why do u even declare it ? -omer
 std::string		Client::extractCommand()
 {
 	std::string	cmd;
@@ -117,8 +115,6 @@ static	std::vector<std::string>	splitWords(const std::string &message)
 
 	return (wordList);
 }
-
-// resizing the message to 512, cause maximum lenght of a message is 512 bytes defined by RFC 1459(or something like that)
 
 Command	Client::parseMessage(const std::string& rawMessage)
 {
