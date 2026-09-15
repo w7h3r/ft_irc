@@ -245,9 +245,7 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 	else if (cmd.type == "PRIVMSG")
 		cmdPrivMsg(client, cmd, clients, channels);
 	else if (cmd.type == "QUIT")
-	{
 		cmdQuit(client, cmd, clients, channels);
-	}
 	else if (cmd.type == "omer")
 		cmdList(clients);
 	else
