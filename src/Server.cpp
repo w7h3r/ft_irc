@@ -225,6 +225,7 @@ void cmdCap(Client *client, struct Command cmd)
 
 static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
+
 	if (cmd.type == "PASS")
 		cmdPass(client, cmd, serverPassword);
 	else if (cmd.type == "NICK")
@@ -245,6 +246,8 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		cmdMode(client, cmd, clients, channels);
 	else if (cmd.type == "PRIVMSG")
 		cmdPrivMsg(client, cmd, clients, channels);
+	else if (cmd.type == "QUIT")
+		cmdQuit(client, cmd, clients, channels);
 	else if (cmd.type == "omer")
 		cmdList(clients);
 	else
