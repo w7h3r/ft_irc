@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/15 02:22:39 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 02:35:39 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -458,5 +458,9 @@ void    cmdPart(Client *client, struct Command cmd, TManager<int, Client *> &cli
             errNotOnChannel(client, *it);
             continue;
         }
+        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string partMsg = ":" + senderMask + " PART " + *it + "\r\n"; 
+        chnl->broadcast(partMsg);
+        chnl->removeMember(client);
     }
 }
