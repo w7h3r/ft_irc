@@ -20,7 +20,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
 void    cmdList(TManager<int, Client *> clients);
 
 
-// void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
+void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 // void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
 
 
@@ -98,7 +98,7 @@ static inline void  errTooManyChannels(Client *client, const std::string &middle
 
 static inline void  errNoRecipient(Client *client, const std::string &middle)
 {
-    sendNumericReply(client, 411, "", "No recipient given (" + middle + ")");
+    sendNumericReply(client, 411, "", "No recipient given (" + middle + ')');
 }
 
 static inline void  errCannotSendToChan(Client *client, const std::string &middle)

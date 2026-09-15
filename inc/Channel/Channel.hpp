@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/13 15:58:50 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 19:58:44 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -65,7 +65,7 @@ class	Channel
 		void	setTopicRestricted(bool& status);
 		void	setUserLimit(size_t& limit);
 
-		Client	*getMember(std::string Name);
+		Client	*getMember(const std::string &Name) const;
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
 		bool	isMember(Client *client) const;

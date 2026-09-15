@@ -6,7 +6,11 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
+<<<<<<< HEAD
 /*   Updated: 2026/09/13 16:48:09 by oozsipah         ###   ########.fr       */
+=======
+/*   Updated: 2026/09/15 02:35:39 by oozsipah         ###   ########.fr       */
+>>>>>>> e6a4a939b3dd67560f8a3f713e36449b1f4ba59d
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -239,6 +243,79 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
     }
 }
 
+
+void cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+	(void) clients;
+    if (cmd.params.size() < 1)
+    {
+        errNeedMoreParams(client, cmd.type);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+
+    std::string channelName = cmd.params[0];
+    Channel *target = NULL;
+
+    try
+    {
+        target = channels.get(channelName); 
+    }
+    catch (const std::exception &e)
+    {
+        errNoSuchChannel(client, channelName);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+    if (!target->isMember(client))
+    {
+        errNotOnChannel(client, channelName);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+        return;
+    }
+
+    bool isViewing = (cmd.params.size() == 1 && cmd.message.empty());
+
+    if (isViewing)
+    {
+        if (target->getTopic().empty())
+            rplNoTopic(client, channelName);
+        else
+            rplTopic(client, channelName, target->getTopic());
+        
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+    }
+    else
+    {
+        std::string newTopic = "";
+        if (!cmd.message.empty())
+            newTopic = cmd.message;
+        else if (cmd.params.size() > 1)
+            newTopic = cmd.params[1];
+
+        // Yetki kontrolü (Kanal sınıfınızda hasTopicRestriction ve isOperator metodları tanımlıysa)
+        /*
+        if (target->isTopicRestricted() && !target->isOperator(client))
+        {
+            errChanOprivsNeeded(client, channelName);
+            if (Server::getInstance() != NULL)
+                Server::getInstance()->enableWriteEvent(client->getFd());
+            return;
+        }
+        */
+
+        target->setTopic(newTopic);
+        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string broadcastMsg = ":" + senderMask + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+
+        target->broadcast(broadcastMsg, NULL);
+    }
+}
+
 void        cmdList(TManager<int, Client *> clients)
 {
     std::map<int, Client *> allClients = clients.getAll();
@@ -461,5 +538,39 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
         }
         else
             errUnknownMode(client, op);
+    }
+}
+
+void    cmdPart(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+    if (cmd.params.size() < 1)
+    {
+        errNeedMoreParams(client, cmd.type);
+        if (Server::getInstance() != NULL)
+            Server::getInstance()->enableWriteEvent(client->getFd());
+    }
+    std::vector<std::string> targets = splitString(cmd.params[0], ',');   
+
+    for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
+    {
+        Channel *chnl;
+        try 
+        {
+            chnl = channels.get(*it);
+        } 
+        catch (const std::exception &e) 
+        {
+            errNoSuchChannel(client, *it);
+            continue;
+        }
+        if (!chnl->getMember(client->getNickname()))
+        {
+            errNotOnChannel(client, *it);
+            continue;
+        }
+        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string partMsg = ":" + senderMask + " PART " + *it + "\r\n"; 
+        chnl->broadcast(partMsg);
+        chnl->removeMember(client);
     }
 }
