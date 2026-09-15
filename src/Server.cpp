@@ -163,17 +163,6 @@ void    removeChannel(Channel *chnl)
 {
 	(void)chnl;
 }
-// void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
-
-// void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-// {
-// 	(void)client;
-// 	(void)cmd;
-// 	(void)clients;
-// 	(void)channels;
-// 	std::cout << "Processing TOPIC Command" << std::endl;
-// 	std::cout << "Processing MODE Command" << std::endl;
-// }
 
 void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
