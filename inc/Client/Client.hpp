@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/06 22:36:13 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:01:48 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -78,6 +78,7 @@ class	Client
 
 		int				getFd() const;
 		std::string		getIp() const;
+		std::string		getMask() const; //omer: client mask oluşturup döndürür.
 		bool			isOP() const;
 		void			setOP(bool op);
 

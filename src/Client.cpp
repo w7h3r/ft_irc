@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:09 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/06 22:37:06 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:03:24 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,7 +45,10 @@ Client::~Client()
 int				Client::getFd() const { return (_fd); }
 
 std::string		Client::getIp() const { return (_ip); }
-
+std::string		Client::getMask() const
+{
+	return (_nickname + "!~" + _name + "@" + _ip);
+}
 connectionState	Client::getConnState() const { return (_connState); }
 void			Client::setConnState(connectionState state) { _connState = state; }
 

@@ -16,7 +16,8 @@ void	cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *
 void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
-void        cmdList(TManager<int, Client *> clients);
+void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void    cmdList(TManager<int, Client *> clients);
 
 
 // void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
@@ -97,7 +98,7 @@ static inline void  errTooManyChannels(Client *client, const std::string &middle
 
 static inline void  errNoRecipient(Client *client, const std::string &middle)
 {
-    sendNumericReply(client, 411, "", "No recipient given " + '(' + middle + ')');
+    sendNumericReply(client, 411, "", "No recipient given (" + middle + ")");
 }
 
 static inline void  errCannotSendToChan(Client *client, const std::string &middle)
@@ -113,6 +114,11 @@ static inline void  errTooManyTargets(Client *client, const std::string &middle)
 static inline void  errNoTextToSend(Client *client)
 {
     sendNumericReply(client, 412, "", "");
+}
+
+static inline void  errUnknownMode(Client *client, char &middle)
+{
+    sendNumericReply(client, 472, std::string(1, middle), "is unknown mode char to me");
 }
 
 static inline void  rplInviting(Client *client, std::string &middle1, std::string &middle2)

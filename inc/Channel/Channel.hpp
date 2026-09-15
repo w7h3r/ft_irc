@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/06 22:35:57 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/13 15:58:50 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -61,7 +61,7 @@ class	Channel
 		void	setTopic(const std::string& topic);
 		void	setKey(const std::string& key);
 
-		void	setInviteOnly(bool& status);
+		void	setInviteOnly(bool status);
 		void	setTopicRestricted(bool& status);
 		void	setUserLimit(size_t& limit);
 

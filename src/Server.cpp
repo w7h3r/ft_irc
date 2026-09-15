@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com       +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:05 by alermi            #+#    #+#             */
-/*   Updated: 2026/08/17 00:22:33 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:47:52 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -163,14 +163,6 @@ void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &cl
 	(void)clients;
 	(void)channels;
 	std::cout << "Processing TOPIC Command" << std::endl;
-}
-void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
-{
-	(void)client;
-	(void)cmd;
-	(void)clients;
-	(void)channels;
-	std::cout << "Processing MODE Command" << std::endl;
 }
 
 void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)

@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/06 23:33:49 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/13 16:48:09 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -58,7 +58,7 @@ Client      *getClient(std::string targetName, TManager<int, Client *> &clients)
         if  (target->getNickname() == targetName)   
             return (target);
     }
-    return (target);
+    return (NULL);
 }
 
 
@@ -182,7 +182,7 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
     }
 
     Channel *chnl = NULL;
-    Client  *target;
+    Client  *target = NULL;
 
     std::vector<std::string> targets = splitString(cmd.params[0], ',');
 
@@ -209,22 +209,26 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
                 {
                     errCannotSendToChan(client, chnl->getName());
                 }
+                goto send_msg;
             }
             catch (const std::exception &e)
             {
-                errNoSuchChannel(client, (*it));
+                errNoSuchChannel(client, *it);
                 continue ;
             }
         }
         target = getClient((*it), clients);
         if (!target)
         {
-            errNoSuchNick(client, (*it));
+            std::cout << "DEBUG: NICK BULUNAMADI" << std::endl;
+            errNoSuchNick(client, *it);
             continue;
         }
-        std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-        std::string msg = ":" + senderMask + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
-    
+
+        send_msg:
+        // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+        std::string msg = ":" + client->getMask() + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
+        
         if (chnl != NULL)
             chnl->broadcast(msg, client);
         else
@@ -348,11 +352,114 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     std::string chnlName = chnl->getName();
     rplInviting(client, targetNick, chnlName);
 
-    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string inviteMsg = ":" + senderMask + " INVITE " + target->getNickname() + " " + chnl->getName() + "\r\n";
+    // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+    std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname() + " " + chnl->getName() + "\r\n";
     target->appendToWriteBuffer(inviteMsg);
 
 	if (Server::getInstance() != NULL) {
 	    Server::getInstance()->enableWriteEvent(target->getFd());
 	}
+}
+
+
+static void    channelModeInvite(Client *client, Channel *chnl, bool setFlag)
+{
+    bool before = chnl->isInviteOnly();
+    
+    if (setFlag == true)
+        chnl->setInviteOnly(true);
+    else
+        chnl->setInviteOnly(false);
+    if (before != chnl->isInviteOnly())
+    {
+        std::string modeMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + "i\r\n";
+        chnl->broadcast(modeMsg);
+    }
+}
+
+static void    channelModeOp(Client *client, std::vector<std::string> params, size_t argIndex, Channel *chnl, TManager<int, Client *> &clients, bool setFlag)
+{
+    Client *target = getClient(params[argIndex], clients);
+    
+    if (!target)
+    {
+        errNoSuchNick(client, params[argIndex]);
+        return ;
+    }
+    if (chnl->isMember(target))
+    {
+        errUserNotInChannel(client, target->getNickname(), chnl->getName());
+        return ;
+    }
+    if (setFlag)
+        chnl->addOperator(target);
+    else
+        chnl->removeOperator(target);
+    std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + target->getNickname() + "o\r\n";
+    chnl->broadcast(opMsg);
+}
+
+void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
+{
+    if (cmd.params.size() == 1)
+    {
+        // mode'lar listelenmeli.
+        return ;
+    }
+    Channel *chnl;
+    try
+    {
+        chnl = channels.get(cmd.params[0]);
+    }
+    catch (const std::exception &e)
+    {
+        errNoSuchChannel(client, cmd.params[0]);
+        return ;
+    }
+    if (!chnl->isMember(client))
+    {
+        errNotOnChannel(client, chnl->getName());
+        return ;
+    }
+    if (!chnl->isOperator(client))
+    {
+        errChanOprivsNeeded(client, chnl->getName());
+        return ;
+    }
+    bool setFlag = true;
+    size_t argIndex = 2;
+    
+    for (size_t i = 0; i < cmd.params[1].length(); i++)
+    {
+        char op = cmd.params[1][i];
+        
+        if (op == '+' || op == '-') 
+        {
+            setFlag = (op == '+');
+        }
+        else if (op == 'i' || op == 't') 
+        {
+            if (op == 'i')
+                channelModeInvite(client, chnl, setFlag);
+        }
+        else if (op == 'o' || op == 'k' || (op == 'l' && setFlag)) 
+        {
+            if (argIndex < cmd.params.size())
+            {
+                if (op == 'o')
+                    channelModeOp(client, cmd.params, argIndex, chnl, clients, setFlag);
+                
+                argIndex++;
+            }
+            else
+            {
+                errNeedMoreParams(client, cmd.type);
+            }        
+        }
+        else if (op == 'l' && !setFlag)
+        {
+        }
+        else
+            errUnknownMode(client, op);
+    }
 }
