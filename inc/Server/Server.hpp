@@ -66,7 +66,7 @@ class	Server
 		~Server();
 
 		Client	*getClientByUsername(std::string &username); // -omer
-		std::vector<Client *> getAllClients() const; // -omer
+		std::vector<Client *> getAllClients();
 
 		static	Server		*getInstance() { return _instance; }
 		void				enableWriteEvent(int fd);
@@ -75,6 +75,7 @@ class	Server
 		bool				running();
 		void				server_start();
 		void				stop();
+
 };
 
 

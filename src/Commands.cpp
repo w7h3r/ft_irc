@@ -58,7 +58,7 @@ Client      *getClient(std::string targetName, TManager<int, Client *> &clients)
         if  (target->getNickname() == targetName)   
             return (target);
     }
-    return (target);
+    return (NULL);
 }
 
 

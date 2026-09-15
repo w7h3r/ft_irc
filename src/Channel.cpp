@@ -128,3 +128,4 @@ void        Channel::broadcast(const std::string &message, Client *exclude)
 			Server::getInstance()->enableWriteEvent((*it)->getFd());
     }
 };
+

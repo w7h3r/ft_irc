@@ -27,6 +27,8 @@
 #include <unistd.h>
 #include <csignal>
 
+#define NO_R (void)
+
 Server	*Server::_instance = NULL;
 
 Server::Server(int port, const std::string& password) : 
@@ -122,8 +124,13 @@ void    Server::_writerClient(int fd)
         return ;
 
     Client    *newClient = _clients.get(fd);
-    if (!newClient)
+	if (!newClient)
         return ;
+	if (newClient->isDisconnected() || newClient->isRefused())
+	{
+		_refuseClient(fd);
+		return ;
+	}
     std::string    &output = newClient->getWriteBuffer();
     if (output.empty())
     {
@@ -168,69 +175,103 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
 
 void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
-	if (cmd.params.empty())
-		return ((void)(std::cout << "Error: PASS command missing password parameter" << std::endl));
+	if (cmd.params.empty() || cmd.params[0].empty())
+		return (NO_R(errNeedMoreParams(client, cmd.type)));
 
-	if (cmd.params[0] == serverPassword)
+	if (client->getConnState() != WAITING_PASS)
+		return (NO_R(errAlreadyRegistered(client)));
+
+	if (cmd.params[0] != serverPassword)
 	{
-		client->setPassword(cmd.params[0]);
-		client->setConnState(WAITING_NICK);
-		std::cout << "Client " << client->getFd() << " provided correct password." << std::endl;
-	}
-	else
-	{
-		std::cout << "Client " << client->getFd() << " provided incorrect password." << std::endl;
 		client->setConnState(REFUSED);
+		return (NO_R(errPasswdMismatch(client)));
 	}
+
+	client->setConnState(WAITING_NICK);
 }
+
+std::vector<Client *> Server::getAllClients()
+{
+	std::vector<Client *> allClients;
+	std::map<int, Client *> clientsMap = _clients.getAll();
+	for (std::map<int, Client *>::const_iterator it = clientsMap.begin(); it != clientsMap.end(); ++it)
+	{
+		allClients.push_back(it->second);
+	}
+	return allClients;
+}
+
+static Client *getClientByNickname(const std::string& nickname, const std::vector<Client *>& clients)
+{
+	for (std::vector<Client *>::const_iterator it = clients.begin(); it != clients.end(); ++it)
+	{
+		Client *client = *it;
+		if (client && client->getNickname() == nickname)
+			return client;
+	}
+	return NULL;
+}
+
 void cmdNick(Client *client, struct Command cmd)
 {
-	if (cmd.params.empty())
-		return ((void)(std::cout << "Error: NICK command missing nickname parameter" << std::endl));
+	if (cmd.params.empty() || cmd.params[0].empty())
+		return (NO_R(errNoNickGiven(client)));
+	std::string nickname = cmd.params[0];
 
-	client->setNickname(cmd.params[0]);
-	if (client->getConnState() == WAITING_NICK)
-		client->setConnState(WAITING_INFO);
-	std::cout << "Client " << client->getFd() << " set nickname to: " << cmd.params[0] << std::endl;
-
+	Client *existingClient = getClientByNickname(nickname, Server::getInstance()->getAllClients());
+	if (existingClient && existingClient != client)
+		return ((void)(errNicknameInUse(client, nickname)));
+	else
+	{
+		client->setNickname(nickname);
+		if (client->getConnState() == WAITING_NICK)
+			client->setConnState(WAITING_INFO);
+		std::cout << "Client " << client->getFd() << " set nickname to: " << nickname << std::endl;
+	}
 }
 void cmdUser(Client *client, struct Command cmd)
 {
-	if (cmd.params.empty())
+	if (cmd.params.empty() || cmd.params[0].empty())
 		return ((void)(std::cout << "Error: USER command missing username parameter" << std::endl));
 
 	client->setUsername(cmd.params[0]);
 	if (client->getConnState() == WAITING_INFO)
 	{
 		client->setConnState(ACCEPT);
-		std::cout << "BAGLANDI SUKSES" << std::endl;
-		std::cout << "Client " << client->getFd() << " set username to: " << cmd.params[0] << std::endl;
-		std::string welcomeMessage = ":ft_irc 001 " + client->getNickname() + " :Welcome to the IRC server " + client->getNickname() + "\r\n";
-		client->appendToWriteBuffer(welcomeMessage);	}
+		rplWelcome(client);
+		rplYourHost(client);
+		rplCreated(client);
+		rplMyInfo(client);
+	}
+	else
+		client->setConnState(WAITING_INFO);
 }
 
 void cmdCap(Client *client, struct Command cmd)
 {
-    if (!cmd.params.empty() && cmd.params[0] == "LS")
+	if (!cmd.params.empty() && cmd.params[0] == "LS")
     {
         std::string capResponse = ":ft_irc CAP * LS :\r\n";
         client->appendToWriteBuffer(capResponse);
         std::cout << "Client " << client->getFd() << " requested CAP LS. Responded with: " << capResponse << std::endl;
     }
-    else
-        return ((void)(std::cout << "Error: CAP command missing parameters" << std::endl));
+	else if (!cmd.params.empty() && cmd.params[0] == "END")
+	{
+	}
 }
 
 static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 	if (cmd.type == "PASS")
-		cmdPass(client, cmd, serverPassword);
+		return cmdPass(client, cmd, serverPassword);
 	else if (cmd.type == "NICK")
-		cmdNick(client, cmd);
+		return cmdNick(client, cmd);
 	else if (cmd.type == "USER")
-		cmdUser(client, cmd);
+		return cmdUser(client, cmd);
 	else if (cmd.type == "CAP")
-		cmdCap(client, cmd);
+		return cmdCap(client, cmd);
+	if (client->getConnState() != ACCEPT)
+		return errNotRegistered(client);
 	else if (cmd.type == "JOIN")
 		cmdJoin(client, cmd, channels);
 	else if (cmd.type == "KICK")
