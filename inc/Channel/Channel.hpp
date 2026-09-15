@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/06 22:35:57 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 23:21:18 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,7 @@ class	Channel
 		std::string	_name;
 		std::string	_topic;
 		std::string	_key;
-	
+		std::string _modes;
 		bool	_isInviteOnly;
 		bool	_isTopicRestricted;
 		bool	_isUserLimit;
@@ -47,7 +47,8 @@ class	Channel
 		std::string	getName() const;
 		std::string	getTopic() const;
 		std::string	getKey() const;
-
+		std::string getModes() const;
+		
 		bool		isInviteOnly()		const;
 		bool		isTopicRestricted()	const;
 		bool		isUserLimit()		const;
@@ -61,11 +62,11 @@ class	Channel
 		void	setTopic(const std::string& topic);
 		void	setKey(const std::string& key);
 
-		void	setInviteOnly(bool& status);
+		void	setInviteOnly(bool status);
 		void	setTopicRestricted(bool& status);
-		void	setUserLimit(size_t& limit);
+		void	setUserLimit(size_t limit);
 
-		Client	*getMember(std::string Name);
+		Client	*getMember(const std::string &Name) const;
 		void	addMember(Client *client);
 		void	removeMember(Client *client);
 		bool	isMember(Client *client) const;
@@ -77,6 +78,9 @@ class	Channel
 		void	addInvite(Client *client);
 		void	removeInvite(Client *client);
 		bool	isInvite(Client *client) const;
+
+		void	addMode(char op);
+		void	removeMode(char op);
 
 		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels);
 
