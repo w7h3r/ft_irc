@@ -150,20 +150,6 @@ void    Server::_writerClient(int fd)
     }
 }
 
-Channel *getChannel(std::string &chnl_name)
-{
-	(void)chnl_name;
-	return (NULL);
-}
-void    addChannel(Channel *chnl)
-{
-	(void)chnl;
-}
-void    removeChannel(Channel *chnl)
-{
-	(void)chnl;
-}
-
 void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
 	if (cmd.params.empty() || cmd.params[0].empty())
@@ -207,17 +193,21 @@ void cmdNick(Client *client, struct Command cmd)
 {
 	if (cmd.params.empty() || cmd.params[0].empty())
 		return (NO_R(errNoNickGiven(client)));
-	std::string nickname = cmd.params[0];
 
+	std::string nickname = cmd.params[0];
 	Client *existingClient = getClientByNickname(nickname, Server::getInstance()->getAllClients());
 	if (existingClient && existingClient != client)
 		return ((void)(errNicknameInUse(client, nickname)));
-	else
+	client->setNickname(nickname);
+	if (client->getUsername().empty())
+		client->setConnState(WAITING_INFO);
+	else if (!client->isRegistered())
 	{
-		client->setNickname(nickname);
-		if (client->getConnState() == WAITING_NICK)
-			client->setConnState(WAITING_INFO);
-		std::cout << "Client " << client->getFd() << " set nickname to: " << nickname << std::endl;
+		client->setConnState(ACCEPT);
+		rplWelcome(client);
+		rplYourHost(client);
+		rplCreated(client);
+		rplMyInfo(client);
 	}
 }
 void cmdUser(Client *client, struct Command cmd)
@@ -226,7 +216,7 @@ void cmdUser(Client *client, struct Command cmd)
 		return ((void)(std::cout << "Error: USER command missing username parameter" << std::endl));
 
 	client->setUsername(cmd.params[0]);
-	if (client->getConnState() == WAITING_INFO)
+	if (!client->getNickname().empty() && !client->isRegistered())
 	{
 		client->setConnState(ACCEPT);
 		rplWelcome(client);
@@ -234,7 +224,7 @@ void cmdUser(Client *client, struct Command cmd)
 		rplCreated(client);
 		rplMyInfo(client);
 	}
-	else
+	else if (client->getNickname().empty())
 		client->setConnState(WAITING_INFO);
 }
 
