@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/15 20:03:11 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 23:22:16 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,21 @@ Channel::~Channel()
 std::string Channel::getName() const { return (_name); }
 std::string Channel::getTopic() const { return (_topic); }
 std::string Channel::getKey() const { return (_key); }
+std::string Channel::getModes() const { return (_modes); }
+
+void    Channel::addMode(char op)
+{
+    if (_modes.empty())
+        _modes += '+';
+    _modes += op;
+}
+
+void    Channel::removeMode(char op)
+{
+    if (_modes.empty())
+        return ;
+    _modes.erase(_modes.find(op));
+}
 
 bool        Channel::isInviteOnly() const { return (_isInviteOnly); }
 bool        Channel::isTopicRestricted() const { return (_isTopicRestricted); }
@@ -47,7 +62,7 @@ void        Channel::setKey(const std::string &key) { _key = key; }
 
 void        Channel::setInviteOnly(bool status) { _isInviteOnly = status; }
 void        Channel::setTopicRestricted(bool& status) { _isTopicRestricted = status; }
-void        Channel::setUserLimit(size_t& limit) { _userLimit = limit; }
+void        Channel::setUserLimit(size_t limit) { _userLimit = limit; (_userLimit == SIZE_MAX) ? _isUserLimit = 0 : _isUserLimit = 1; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
 

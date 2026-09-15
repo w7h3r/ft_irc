@@ -6,13 +6,14 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/15 20:56:29 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 23:32:17 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Commands.hpp"
 #include "../inc/Server/Server.hpp"
 #include <sstream>
+#include <cstdlib>
 #include <sys/socket.h>
 
 Channel *createChannel(std::string &name, std::string &key)
@@ -118,7 +119,7 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
                 errInviteOnlyChan(client, channelName);
                 continue;
             }
-            if (chnl->getUserLimit() == chnl->getMemberList().size())
+            if (chnl->isUserLimit() && (chnl->getUserLimit() == chnl->getMemberList().size()))
             {
                 errChannelIsFull(client, channelName);
                 continue;
@@ -513,13 +514,13 @@ static void    channelModeInvite(Client *client, Channel *chnl, bool setFlag)
     }
 }
 
-static void    channelModeOp(Client *client, std::vector<std::string> params, size_t argIndex, Channel *chnl, TManager<int, Client *> &clients, bool setFlag)
+static void    channelModeOp(Client *client, std::string param, Channel *chnl, TManager<int, Client *> &clients, bool setFlag)
 {
-    Client *target = getClient(params[argIndex], clients);
+    Client *target = getClient(param, clients);
     
     if (!target)
     {
-        errNoSuchNick(client, params[argIndex]);
+        errNoSuchNick(client, param);
         return ;
     }
     if (chnl->isMember(target))
@@ -533,6 +534,49 @@ static void    channelModeOp(Client *client, std::vector<std::string> params, si
         chnl->removeOperator(target);
     std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + target->getNickname() + "o\r\n";
     chnl->broadcast(opMsg);
+}
+
+void    channelModeKey(Client *client, std::string param, Channel *chnl, bool setFlag)
+{
+    std::string keyMsg;
+    if (!setFlag)
+    {
+        keyMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " -k " + chnl->getKey() + "\r\n"; 
+        chnl->setKey("");
+    }
+    else
+    {
+        if (!chnl->getKey().empty())
+        {
+            errKeySet(client, chnl->getName());
+            return ;
+        }
+        chnl->setKey(param);
+        keyMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " +k " + chnl->getKey() + "\r\n"; 
+    }
+    chnl->broadcast(keyMsg);
+}
+
+void    channelModeLimit(Client *client, std::string &param, Channel *chnl, bool setFlag)
+{
+    std::string limitMsg;
+    
+    if (setFlag)
+    {
+        size_t limit = std::strtoul(param.c_str(), NULL, 10);
+        if (!chnl->isUserLimit())
+            chnl->addMode('l');
+        chnl->setUserLimit(limit);
+        limitMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " +l " + param + "\r\n"; 
+    }
+    else
+    {
+        if (chnl->isUserLimit())
+            chnl->removeMode('l');
+        chnl->setUserLimit(SIZE_MAX);
+        limitMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " -l " + "\r\n";
+    }
+    chnl->broadcast(limitMsg);
 }
 
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
@@ -583,17 +627,22 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
             if (argIndex < cmd.params.size())
             {
                 if (op == 'o')
-                    channelModeOp(client, cmd.params, argIndex, chnl, clients, setFlag);
-                
+                    channelModeOp(client, cmd.params[argIndex], chnl, clients, setFlag);
+                else if (op == 'k')
+                    channelModeKey(client, cmd.params[argIndex], chnl, setFlag);
+                else if (op == 'l')
+                    channelModeLimit(client, cmd.params[argIndex], chnl, setFlag);
                 argIndex++;
             }
             else
             {
                 errNeedMoreParams(client, cmd.type);
+                continue;
             }        
         }
         else if (op == 'l' && !setFlag)
         {
+            channelModeLimit(client, "", chnl, setFlag);
         }
         else
             errUnknownMode(client, op);

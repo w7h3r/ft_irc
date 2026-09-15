@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:05 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/15 20:43:29 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/15 23:29:27 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,6 +226,7 @@ void cmdCap(Client *client, struct Command cmd)
 static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 
+	std::cout << "DEBUG!= " << client->getNickname() << std::endl;
 	if (cmd.type == "PASS")
 		cmdPass(client, cmd, serverPassword);
 	else if (cmd.type == "NICK")
@@ -300,11 +301,7 @@ void	Server::_readerClient(int fd)
 
 void	Server::enableWriteEvent(int fd)
 {
-	std::cout << "YARAK18" << std::endl;
-	
 	_modifyEpoll(fd, EPOLLIN | EPOLLOUT);
-	std::cout << "YARAK19" << std::endl;
-
 }
 
 void	Server::_acceptClient()

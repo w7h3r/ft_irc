@@ -2,6 +2,7 @@
 #define COMMAND_H
 
 #include "Channel/Channel.hpp"
+#include "Server/Server.hpp"
 #include "templates/TManager.hpp"
 #include <sstream>
 #include <stdexcept>
@@ -33,6 +34,8 @@ static inline void  sendNumericReply(Client *client, int code, const std::string
     std::stringstream ss;
     ss << ":server " << code << " " << client->getNickname() << " " << middle + " :" + trailing + "\r\n";
     client->appendToWriteBuffer(ss.str());
+    if (Server::getInstance() != NULL)
+        Server::getInstance()->enableWriteEvent(client->getFd());
 }
 
 static inline void  errNeedMoreParams(Client *client, const std::string &middle)
@@ -120,9 +123,14 @@ static inline void  errNoTextToSend(Client *client)
     sendNumericReply(client, 412, "", "");
 }
 
-static inline void  errUnknownMode(Client *client, char &middle)
+static inline void  errUnknownMode(Client *client, char middle)
 {
     sendNumericReply(client, 472, std::string(1, middle), "is unknown mode char to me");
+}
+
+static inline void  errKeySet(Client *client, const std::string &middle)
+{
+    sendNumericReply(client, 467, middle, "Channel key already set");
 }
 
 static inline void  rplInviting(Client *client, std::string &middle1, std::string &middle2)
