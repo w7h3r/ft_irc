@@ -16,11 +16,13 @@
  * */
 
 template <typename K, typename V>
-inline bool TManager<K, V>::exists(const K& key) const {
+inline bool TManager<K, V>::exists(const K& key) const
+{
     return (_data.find(key) != _data.end());
 }
 
 template <typename K, typename V>
-inline std::map<K, V>& TManager<K, V>::getAll(){
+inline std::map<K, V>& TManager<K, V>::getAll()
+{
     return _data;
 }

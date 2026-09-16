@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/16 17:09:01 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/16 18:28:52 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -375,6 +375,7 @@ void cmdQuit(Client *client, struct Command cmd, TManager<int, Client *> &client
             }
         }
     }
+	Server::getInstance()->_refuseClient(client->getFd());
 }
 void        cmdList(TManager<int, Client *> clients)
 {
@@ -523,14 +524,12 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
 {
     Client *target = getClient(param, clients);
     
-    std::cout << "DEBUG MODE OP: " << target->getNickname() << std::endl;
-
     if (!target)
     {
         errNoSuchNick(client, param);
         return ;
     }
-    if (chnl->isMember(target))
+    if (!chnl->isMember(target))
     {
         errUserNotInChannel(client, target->getNickname(), chnl->getName());
         return ;
@@ -641,7 +640,6 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
     bool setFlag = true;
     size_t argIndex = 2;
     std::string dummy = "";
-
     for (size_t i = 0; i < cmd.params[1].length(); i++)
     {
         char op = cmd.params[1][i];
@@ -718,5 +716,4 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
 
     }
 }
-
 // void    cmdPong()

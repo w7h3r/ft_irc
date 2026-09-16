@@ -149,4 +149,54 @@ static inline void  kickMsg(Channel *chnl ,const std::string &kickerMask, const 
     chnl->broadcast(kickMsgStr);
 }
 
+inline void	errNoNickGiven(Client *client)
+{
+	sendNumericReply(client, 431, "", "No nickname given");
+}
+
+inline void  errErroneusNickname(Client *client, const std::string &middle)
+{
+	sendNumericReply(client, 432, middle, "Erroneous nickname");
+}
+
+inline void  errNicknameInUse(Client *client, const std::string &middle)
+{
+	sendNumericReply(client, 433, middle, "Nickname is already in use");
+}
+
+inline void  errAlreadyRegistered(Client *client)
+{
+	sendNumericReply(client, 462, "", "You may not reregister");
+}
+
+inline void  errNotRegistered(Client *client)
+{
+	sendNumericReply(client, 451, "", "You have not registered");
+}
+
+inline void  errPasswdMismatch(Client *client)
+{
+	sendNumericReply(client, 464, "", "Password incorrect");
+}
+
+inline void  rplWelcome(Client *client)
+{
+	sendNumericReply(client, 001, "", "Welcome to the Internet Relay Network written by @oozsipah, @muokcan and @alermi " + client->getNickname() + "!" + client->getUsername() + "@" + client->getIp());
+}
+
+inline void  rplYourHost(Client *client)
+{
+	sendNumericReply(client, 002, "", "Your host is ft_irc, running version 0.1");
+}
+
+inline void  rplCreated(Client *client)
+{
+	sendNumericReply(client, 003, "", "This server was created on " + std::string(__DATE__) + " at " + std::string(__TIME__));
+}
+
+inline void  rplMyInfo(Client *client)
+{
+	sendNumericReply(client, 004, "", "ft_irc 0.1");
+}
+
 #endif

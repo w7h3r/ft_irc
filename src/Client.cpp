@@ -11,6 +11,7 @@
 /* ************************************************************************** */
 
 #include "../inc/Client/Client.hpp"
+#include "../inc/Server/Server.hpp"
 #include <unistd.h>
 #include <vector>
 #include <sstream>
@@ -75,7 +76,12 @@ std::string		Client::getPassword() const { return (_password); }
 void			Client::setPassword(const std::string& password) { _password = password; }
 
 void			Client::appendToReadBuffer(const std::string& data) { _readBuffer += data; }
-void			Client::appendToWriteBuffer(const std::string& data) { _writeBuffer += data; }
+void			Client::appendToWriteBuffer(const std::string& data)
+{
+	_writeBuffer += data;
+	if (Server::getInstance() != NULL)
+		Server::getInstance()->enableWriteEvent(_fd);
+}
 
 std::string&	Client::getWriteBuffer() { return (_writeBuffer); }
 void			Client::clearWriteBuffer() { _writeBuffer.clear(); }
@@ -95,8 +101,6 @@ void			Client::decrementChannelCount()
 }
 int				Client::getChannelCount() const { return(_channelCount); }
 
-// This fuction is almost useless
-// then why do u even declare it ? -omer
 std::string		Client::extractCommand()
 {
 	std::string	cmd;
@@ -120,8 +124,6 @@ static	std::vector<std::string>	splitWords(const std::string &message)
 
 	return (wordList);
 }
-
-// resizing the message to 512, cause maximum lenght of a message is 512 bytes defined by RFC 1459(or something like that)
 
 Command	Client::parseMessage(const std::string& rawMessage)
 {
@@ -173,20 +175,8 @@ static	bool	isValidUsername(const std::string& str)
 	return (true);
 }
 
-static	bool	isValidPassword(const std::string& str)
-{
-	if (str.empty())
-		return (false);
-	for (size_t i = 0; i < str.length(); ++i)
-	{
-		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
-			return (false);
-	}
-	return (true);
-}
-
 bool	Client::hasValidCredentials() const
 {
-	return (isValidNickname(_nickname) && isValidUsername(_name) && isValidPassword(_password));
+	return (isValidNickname(_nickname) && isValidUsername(_name));
 }
 
