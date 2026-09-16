@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/15 23:32:17 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/16 03:54:41 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -509,6 +509,10 @@ static void    channelModeInvite(Client *client, Channel *chnl, bool setFlag)
         chnl->setInviteOnly(false);
     if (before != chnl->isInviteOnly())
     {
+        if (setFlag == true)
+            chnl->addMode('i');
+        else
+            chnl->removeMode('i');
         std::string modeMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + "i\r\n";
         chnl->broadcast(modeMsg);
     }
@@ -536,13 +540,14 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
     chnl->broadcast(opMsg);
 }
 
-void    channelModeKey(Client *client, std::string param, Channel *chnl, bool setFlag)
+void    channelModeKey(Client *client, std::string &param, Channel *chnl, bool setFlag)
 {
     std::string keyMsg;
     if (!setFlag)
     {
         keyMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " -k " + chnl->getKey() + "\r\n"; 
         chnl->setKey("");
+        chnl->removeMode('k');
     }
     else
     {
@@ -552,12 +557,13 @@ void    channelModeKey(Client *client, std::string param, Channel *chnl, bool se
             return ;
         }
         chnl->setKey(param);
+        chnl->addMode('k');
         keyMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " +k " + chnl->getKey() + "\r\n"; 
     }
     chnl->broadcast(keyMsg);
 }
 
-void    channelModeLimit(Client *client, std::string &param, Channel *chnl, bool setFlag)
+void    channelModeLimit(Client *client, std::string &param , Channel *chnl, bool setFlag)
 {
     std::string limitMsg;
     
@@ -579,11 +585,34 @@ void    channelModeLimit(Client *client, std::string &param, Channel *chnl, bool
     chnl->broadcast(limitMsg);
 }
 
+void    channelModeTopic(Client *client, Channel *chnl, bool setFlag)
+{
+    std::string topicMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " +t\r\n";
+    chnl->setTopicRestricted(true);
+    chnl->addMode('t');
+    if (!setFlag)
+    {
+        topicMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " -t\r\n";
+        chnl->setTopicRestricted(false);
+        chnl->removeMode('t');
+    }
+    chnl->broadcast(topicMsg);
+}
+
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
     if (cmd.params.size() == 1)
     {
-        // mode'lar listelenmeli.
+        try
+        {
+            Channel *chnl = channels.get(cmd.params[0]);
+            rplChannelModeIs(client, chnl->getName(), chnl->getModes(), chnl->getModeParams());
+        }
+        catch(const std::exception& e)
+        {
+            return ;
+        }
+        
         return ;
     }
     Channel *chnl;
@@ -608,8 +637,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
     }
     bool setFlag = true;
     size_t argIndex = 2;
-	std::string		absoluteEmptiness;
-    
+    std::string dummy = "";
     for (size_t i = 0; i < cmd.params[1].length(); i++)
     {
         char op = cmd.params[1][i];
@@ -622,6 +650,8 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
         {
             if (op == 'i')
                 channelModeInvite(client, chnl, setFlag);
+            if (op == 't')
+                channelModeTopic(client, chnl, setFlag);
         }
         else if (op == 'o' || op == 'k' || (op == 'l' && setFlag)) 
         {
@@ -642,9 +672,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
             }        
         }
         else if (op == 'l' && !setFlag)
-        {
-            channelModeLimit(client, absoluteEmptiness, chnl, setFlag);
-        }
+            channelModeLimit(client, dummy,chnl, setFlag);
         else
             errUnknownMode(client, op);
     }

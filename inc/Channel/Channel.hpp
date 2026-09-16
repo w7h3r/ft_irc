@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:40 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/15 23:21:18 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/16 03:20:28 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,6 @@ class	Channel
 		std::string	getName() const;
 		std::string	getTopic() const;
 		std::string	getKey() const;
-		std::string getModes() const;
 		
 		bool		isInviteOnly()		const;
 		bool		isTopicRestricted()	const;
@@ -63,7 +62,7 @@ class	Channel
 		void	setKey(const std::string& key);
 
 		void	setInviteOnly(bool status);
-		void	setTopicRestricted(bool& status);
+		void	setTopicRestricted(bool status);
 		void	setUserLimit(size_t limit);
 
 		Client	*getMember(const std::string &Name) const;
@@ -81,6 +80,8 @@ class	Channel
 
 		void	addMode(char op);
 		void	removeMode(char op);
+		std::string getModes() const;
+		std::string getModeParams() const;
 
 		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels);
 

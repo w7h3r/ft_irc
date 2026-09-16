@@ -133,6 +133,11 @@ static inline void  errKeySet(Client *client, const std::string &middle)
     sendNumericReply(client, 467, middle, "Channel key already set");
 }
 
+static inline void  rplChannelModeIs(Client *client, const std::string &chnlName, const std::string &chnlModes, const std::string &chnlModeParams)
+{
+    sendNumericReply(client, 324, chnlName + " " + chnlModes + " " + chnlModeParams, "");
+}
+
 static inline void  rplInviting(Client *client, std::string &middle1, std::string &middle2)
 {
     sendNumericReply(client, 341, middle1 + " " + middle2, "");
