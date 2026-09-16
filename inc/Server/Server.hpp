@@ -50,7 +50,6 @@ class	Server
 		void	_initEpoll();
 
 		void	_acceptClient();
-		void	_refuseClient(int fd);
 		void	_kickClient(int fd);
 		void	_bannClient(int fd);
 
@@ -60,7 +59,7 @@ class	Server
 		void	_processCommand(Client* client, const std::string& rawCommand);
 		void	_modifyEpoll(int fd, int events);
 	
-		void	deleteClientFromAllChannels(Client *client);
+		void	_deleteClientFromAllChannels(Client *client);
 	public:
 		Server(int port, const std::string& password);
 		~Server();
@@ -68,6 +67,8 @@ class	Server
 		Client	*getClientByUsername(std::string &username); // -omer
 		std::vector<Client *> getAllClients();
 
+	
+		void				_refuseClient(int fd);
 		static	Server		*getInstance() { return _instance; }
 		void				enableWriteEvent(int fd);
 		int					getPort() const;
@@ -77,14 +78,5 @@ class	Server
 		void				stop();
 
 };
-
-
-
-void	cmdAdd(struct Commond *commands);
-void	cmdAdd(struct Commond *commands);
-void	cmdAdd(struct Commond *commands);
-void	cmdAdd(struct Commond *commands);
-void	cmdAdd(struct Commond *commands);
-
 
 #endif

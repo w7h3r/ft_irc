@@ -375,6 +375,7 @@ void cmdQuit(Client *client, struct Command cmd, TManager<int, Client *> &client
             }
         }
     }
+	Server::getInstance()->_refuseClient(client->getFd());
 }
 void        cmdList(TManager<int, Client *> clients)
 {
