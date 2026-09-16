@@ -51,7 +51,6 @@ class	Server
 
 		void	_acceptClient();
 		void	_kickClient(int fd);
-		void	_bannClient(int fd);
 
 		void	_readerClient(int fd);
 		void	_writerClient(int fd);
@@ -64,7 +63,7 @@ class	Server
 		Server(int port, const std::string& password);
 		~Server();
 
-		Client	*getClientByUsername(std::string &username); // -omer
+		Client	*getClientByUsername(std::string &username);
 		std::vector<Client *> getAllClients();
 
 	

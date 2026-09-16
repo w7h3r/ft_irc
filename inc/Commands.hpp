@@ -23,11 +23,8 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
 void    cmdList(TManager<int, Client *> clients);
 
 
-void    cmdTopic(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
-// void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);  
-
-
-void	cmdQuit(Client *client, struct Command cmd,TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
+void    cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);  
+void	cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
 
 static inline void  sendNumericReply(Client *client, int code, const std::string &middle, const std::string &trailing)
 {

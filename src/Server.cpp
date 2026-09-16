@@ -138,7 +138,7 @@ void    Server::_writerClient(int fd)
         _modifyEpoll(fd, EPOLLIN);
         return ;
     }
-    ssize_t    byteCount = send(fd, output.c_str(), output.size(), 0);
+    ssize_t byteCount = send(fd, output.c_str(), output.size(), MSG_NOSIGNAL);
     if (byteCount > 0)
     {
         output.erase(0, byteCount);
@@ -270,8 +270,6 @@ void	botPardus(Client *client)
 
 static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
-
-	std::cout << "DEBUG!= " << client->getNickname() << std::endl;
 	if (cmd.type == "PASS")
 		return cmdPass(client, cmd, serverPassword);
 	if (client->isRefused() || client->isDisconnected())
@@ -293,13 +291,16 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 	else if (cmd.type == "INVITE")
 		cmdInvite(client, cmd, clients, channels);
 	else if (cmd.type == "TOPIC")
-		cmdTopic(client, cmd, clients, channels);
+		cmdTopic(client, cmd, channels);
 	else if (cmd.type == "MODE")
 		cmdMode(client, cmd, clients, channels);
 	else if (cmd.type == "PRIVMSG")
 		cmdPrivMsg(client, cmd, clients, channels);
 	else if (cmd.type == "QUIT")
-		cmdQuit(client, cmd, clients, channels);
+	{
+		client->setConnState(DISCONNECT);
+		cmdQuit(client, cmd, channels);
+	}
 	else if (cmd.type == "PART")
 		cmdPart(client, cmd, channels);
 	else if (cmd.type == "omer")
@@ -308,46 +309,42 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		std::cout << "Unknown Command: " << cmd.type << std::endl;
 }
 
-void	Server::_readerClient(int fd)
+void    Server::_readerClient(int fd)
 {
-	char	buffer[1024];
+    char    buffer[1024];
 
-	ssize_t	contentByte = recv(fd, buffer, sizeof(buffer) - 1, 0);
-	if (contentByte <= 0)
-	{
-		_refuseClient(fd);
-	}
-	else
-	{
-		buffer[contentByte] = '\0';
-		std::cout << "> " << fd << " (RECV): " << buffer << std::endl;
+    ssize_t    contentByte = recv(fd, buffer, sizeof(buffer) - 1, 0);
+    if (contentByte <= 0)
+        _refuseClient(fd);
+    else
+    {
+        buffer[contentByte] = '\0';
+        std::cout << "> " << fd << " (RECV): " << buffer << std::endl;
 
-		Client	*newClient = _clients.get(fd);
+        Client    *newClient = _clients.get(fd);
 		if (newClient)
-		{
-			newClient->appendToReadBuffer(buffer);
+        {
+            newClient->appendToReadBuffer(buffer);
 
-			while (newClient->hasCompleteCommand())
-			{
-				std::string	rawCommands = newClient->extractCommand();
-				Command cmd = newClient->parseMessage(rawCommands);
-				
-				std::cout << "Processing Command: " << rawCommands << std::endl; // DEBUG
-				
-				decideCommand(newClient, cmd, _clients, _channel, _password);
+            while (newClient->hasCompleteCommand())
+            {
+                std::string    rawCommands = newClient->extractCommand();
+                Command cmd = newClient->parseMessage(rawCommands);
+                
+                decideCommand(newClient, cmd, _clients, _channel, _password);
 
-				for (std::vector<std::string>::iterator it = cmd.params.begin(); it != cmd.params.end(); ++it)
-				{
-					std::cout << "debug cmds: " << *it << std::endl;
-				}
-			}
-
-			if (!newClient->getWriteBuffer().empty())
-			{
-				_modifyEpoll(fd, EPOLLIN | EPOLLOUT);
-			}
-		}
-	}
+                if (_clients.get(fd) == NULL)
+                {
+                    std::cout << "Client " << fd << " silindi, okuma döngüsünden çıkılıyor." << std::endl;
+                    return ;
+                }
+            }
+            if (!newClient->getWriteBuffer().empty())
+            {
+                _modifyEpoll(fd, EPOLLIN | EPOLLOUT);
+            }
+        }
+    }
 }
 
 void	Server::enableWriteEvent(int fd)
@@ -389,9 +386,10 @@ void	Server::_acceptClient()
 
 void        Server::_deleteClientFromAllChannels(Client *client)
 {
-	std::map<std::string, Channel *>	&allChannels = _channel.getAll();
+    std::map<std::string, Channel *>    &allChannels = _channel.getAll();
+    std::map<std::string, Channel *>::iterator it = allChannels.begin();
 
-    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); it++)
+    while (it != allChannels.end())
     {
         Channel *chnl = it->second;
         if (chnl)
@@ -404,32 +402,33 @@ void        Server::_deleteClientFromAllChannels(Client *client)
             if (chnl->getMemberList().empty())
             {
                 delete chnl;
-				allChannels.erase(it++);
-                continue;
-            }
+                allChannels.erase(it++);
+			}
+            else
+                it++;
         }
+        else
+            it++;
     }
 }
 
-void	Server::_refuseClient(int fd)
+void    Server::_refuseClient(int fd)
 {
-	std::cout << "[Disconnected Client Connection]" << std::endl;
-	struct	epoll_event	dummy;
+    std::cout << "[Disconnected Client Connection]" << std::endl;
+    struct    epoll_event    dummy;
 
-	epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
-
-	std::cout << "epoll table removing finish" << std::endl;
-	Client	*delClient = _clients.get(fd);
+    epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
+    close(fd); 
+    std::cout << "epoll table removing finish" << std::endl;
+    
+    Client    *delClient = _clients.get(fd);
 	if (delClient)
-	{
-		std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
-		std::cout << "DENEME" << std::endl;
-
-		_deleteClientFromAllChannels(delClient);
+    {
+        std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
+        _deleteClientFromAllChannels(delClient);
 		delete delClient;
-		_clients.remove(fd);
-	}
-	fd = -1;
+        _clients.remove(fd);
+    }
 }
 
 void	Server::_signalHandler(int signum)
@@ -452,6 +451,7 @@ void	Server::server_start()
 {
 	signal(SIGINT, Server::_signalHandler);
 	signal(SIGTERM, Server::_signalHandler);
+	signal(SIGPIPE, SIG_IGN);
 	_initSocket();
     _initEpoll();
 	int	eventCount;
@@ -480,4 +480,3 @@ void	Server::server_start()
         }
 	}
 }
-

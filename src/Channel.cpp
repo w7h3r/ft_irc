@@ -173,7 +173,6 @@ void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::s
         if (chnl->isOperator(client))
             chnl->removeOperator(client);
     }
-    delete client;
 }
 
 void        Channel::broadcast(const std::string &message, Client *exclude)
