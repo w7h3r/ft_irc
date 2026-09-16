@@ -387,11 +387,11 @@ void	Server::_acceptClient()
 	std::cout << ">" << clientFd << ":" << inet_ntoa(clientAdress.sin_addr) << std::endl;
 }
 
-void        Server::deleteClientFromAllChannels(Client *client)
+void        Server::_deleteClientFromAllChannels(Client *client)
 {
 	std::map<std::string, Channel *>	&allChannels = _channel.getAll();
 
-    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); )
+    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); it++)
     {
         Channel *chnl = it->second;
         if (chnl)
@@ -408,7 +408,6 @@ void        Server::deleteClientFromAllChannels(Client *client)
                 continue;
             }
         }
-        ++it;
     }
 }
 
@@ -424,7 +423,9 @@ void	Server::_refuseClient(int fd)
 	if (delClient)
 	{
 		std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
-		deleteClientFromAllChannels(delClient);
+		std::cout << "DENEME" << std::endl;
+
+		_deleteClientFromAllChannels(delClient);
 		delete delClient;
 		_clients.remove(fd);
 	}

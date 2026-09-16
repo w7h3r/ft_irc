@@ -10,21 +10,16 @@
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../inc/Client/Client.hpp"
-#include <map>
-#include <iostream>
 #include "../inc/Server/Server.hpp"
-#include "../inc/Exception/Exception.hpp"
-#include "../inc/templates/TManager.hpp"
-
+#include <iostream>
 #include <cstdlib>
 #include <exception>
+
 int main(int argc, char **argv)
 {
 	if (argc != 3)
-	{
 		return (1);
-	}
+
 	int		port = std::atoi(argv[1]);
 	std::string	password = argv[2];
 
