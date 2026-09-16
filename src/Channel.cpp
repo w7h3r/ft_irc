@@ -6,13 +6,14 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/15 23:22:16 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/16 03:47:24 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Channel/Channel.hpp"
 #include "../inc/Server/Server.hpp"
 #include <sys/socket.h>
+#include <sstream>
 
 Channel::Channel(const std::string &name, const std::string &key)
 {
@@ -28,23 +29,57 @@ Channel::~Channel()
 {
 }
 
+template <typename N>
+std::string intToString(N value)
+{
+    std::stringstream ss;
+    ss << value;
+    return ss.str();
+}
+
 std::string Channel::getName() const { return (_name); }
 std::string Channel::getTopic() const { return (_topic); }
 std::string Channel::getKey() const { return (_key); }
 std::string Channel::getModes() const { return (_modes); }
+std::string Channel::getModeParams() const
+{    
+    std::string retVal = "";
+    
+    for (size_t i = 0; i < _modes.length(); i++)
+    {
+        char mode = _modes[i];
+        
+        if (mode == 'k' && !_key.empty())
+        {
+            retVal += _key;
+            retVal += " ";
+        }
+        else if (mode == 'l' && _isUserLimit == true)
+        {
+            retVal += intToString(_userLimit);
+            retVal += " ";
+        }
+    }
+    if (!retVal.empty() && retVal[retVal.length() - 1] == ' ')
+        retVal.erase(retVal.length() - 1, 1);
+    return retVal;
+}
 
 void    Channel::addMode(char op)
 {
     if (_modes.empty())
         _modes += '+';
-    _modes += op;
+    if (_modes.find(op) == std::string::npos)
+        _modes += op;
 }
 
 void    Channel::removeMode(char op)
 {
     if (_modes.empty())
         return ;
-    _modes.erase(_modes.find(op));
+    _modes.erase(_modes.find(op), 1);
+    if (_modes.length() == 1 && _modes[0] == '+')
+        _modes = "";
 }
 
 bool        Channel::isInviteOnly() const { return (_isInviteOnly); }
@@ -61,7 +96,7 @@ void        Channel::setTopic(const std::string &topic) { _topic = topic; }
 void        Channel::setKey(const std::string &key) { _key = key; }
 
 void        Channel::setInviteOnly(bool status) { _isInviteOnly = status; }
-void        Channel::setTopicRestricted(bool& status) { _isTopicRestricted = status; }
+void        Channel::setTopicRestricted(bool status) { _isTopicRestricted = status; }
 void        Channel::setUserLimit(size_t limit) { _userLimit = limit; (_userLimit == SIZE_MAX) ? _isUserLimit = 0 : _isUserLimit = 1; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
