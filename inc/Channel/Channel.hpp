@@ -83,7 +83,7 @@ class	Channel
 		std::string getModes() const;
 		std::string getModeParams() const;
 
-		void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels);
+		static void	deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels);
 
 		void	broadcast(const std::string& message, Client *exclude = NULL);
 
