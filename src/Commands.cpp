@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/16 22:46:35 by oozsipah          #+#    #+#             */
-/*   Updated: 2026/09/16 03:52:09 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/16 17:09:01 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -461,6 +461,7 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     
     Channel *chnl = channels.get(cmd.params[1]);
     Client  *target = getClient(cmd.params[0], clients);
+    std::cout << target->getNickname() << std::endl;
 
     if (!target)
     {
@@ -522,6 +523,8 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
 {
     Client *target = getClient(param, clients);
     
+    std::cout << "DEBUG MODE OP: " << target->getNickname() << std::endl;
+
     if (!target)
     {
         errNoSuchNick(client, param);
@@ -536,7 +539,7 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
         chnl->addOperator(target);
     else
         chnl->removeOperator(target);
-    std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + target->getNickname() + "o\r\n";
+    std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + "o " + target->getNickname() + "\r\n";
     chnl->broadcast(opMsg);
 }
 
@@ -710,5 +713,10 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
         std::string partMsg = ":" + senderMask + " PART " + *it + "\r\n"; 
         chnl->broadcast(partMsg);
         chnl->removeMember(client);
+        if (chnl->getMemberList().size() == 0)
+            delete chnl;
+
     }
 }
+
+// void    cmdPong()
