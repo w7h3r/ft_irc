@@ -12,6 +12,7 @@
 
 #include "../inc/Server/Server.hpp"
 #include "../inc/Commands.hpp"
+#include "../inc/Client/Client.hpp"
 #include <iostream>
 #include <stdexcept>
 #include <sys/epoll.h>
@@ -160,6 +161,7 @@ void cmdPass(Client *client, struct Command cmd, const std::string serverPasswor
 
 	if (cmd.params[0] != serverPassword)
 	{
+		std::cout << "Password mismatch for client " << client->getFd() << std::endl;
 		client->setConnState(REFUSED);
 		return (NO_R(errPasswdMismatch(client)));
 	}
@@ -189,15 +191,30 @@ static Client *getClientByNickname(const std::string& nickname, const std::vecto
 	return NULL;
 }
 
+static bool	isValidName(const std::string& str)
+{
+	
+	if (str.empty())
+		return (false);
+	for (size_t i = 0; i < str.length(); ++i)
+	{
+		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
+			return (false);
+	}
+	return (true);
+}
+
 void cmdNick(Client *client, struct Command cmd)
 {
 	if (cmd.params.empty() || cmd.params[0].empty())
 		return (NO_R(errNoNickGiven(client)));
+	if (!isValidName(cmd.params[0]))
+		return (NO_R(errErroneusNickname(client, cmd.params[0])));
 
 	std::string nickname = cmd.params[0];
 	Client *existingClient = getClientByNickname(nickname, Server::getInstance()->getAllClients());
 	if (existingClient && existingClient != client)
-		return ((void)(errNicknameInUse(client, nickname)));
+		return (NO_R(errNicknameInUse(client, nickname)));
 	client->setNickname(nickname);
 	if (client->getUsername().empty())
 		client->setConnState(WAITING_INFO);
@@ -210,10 +227,11 @@ void cmdNick(Client *client, struct Command cmd)
 		rplMyInfo(client);
 	}
 }
+
 void cmdUser(Client *client, struct Command cmd)
 {
 	if (cmd.params.empty() || cmd.params[0].empty())
-		return ((void)(std::cout << "Error: USER command missing username parameter" << std::endl));
+		return (NO_R(std::cout << "Error: USER command missing username parameter" << std::endl));
 
 	client->setUsername(cmd.params[0]);
 	if (!client->getNickname().empty() && !client->isRegistered())
@@ -241,12 +259,23 @@ void cmdCap(Client *client, struct Command cmd)
 	}
 }
 
+void	botPardus(Client *client)
+{
+	std::string response = "'pardus meows in turkish :3'\r\n";
+
+	client->appendToWriteBuffer(response);
+	if (Server::getInstance() != NULL)
+		Server::getInstance()->enableWriteEvent(client->getFd());
+}
+
 static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 
 	std::cout << "DEBUG!= " << client->getNickname() << std::endl;
 	if (cmd.type == "PASS")
 		return cmdPass(client, cmd, serverPassword);
+	if (client->isRefused() || client->isDisconnected())
+		return ;
 	else if (cmd.type == "NICK")
 		return cmdNick(client, cmd);
 	else if (cmd.type == "USER")
@@ -257,6 +286,8 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		return errNotRegistered(client);
 	else if (cmd.type == "JOIN")
 		cmdJoin(client, cmd, channels);
+	else if (cmd.type == "PARDUS")
+		botPardus(client);
 	else if (cmd.type == "KICK")
 		cmdKick(client, cmd, clients, channels);
 	else if (cmd.type == "INVITE")

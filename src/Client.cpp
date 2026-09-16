@@ -149,34 +149,3 @@ Command	Client::parseMessage(const std::string& rawMessage)
 	}
 	return (command);
 }
-
-static	bool	isValidNickname(const std::string& str)
-{
-	
-	if (str.empty())
-		return (false);
-	for (size_t i = 0; i < str.length(); ++i)
-	{
-		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
-			return (false);
-	}
-	return (true);
-}
-
-static	bool	isValidUsername(const std::string& str)
-{
-	if (str.empty())
-		return (false);
-	for (size_t i = 0; i < str.length(); ++i)
-	{
-		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
-			return (false);
-	}
-	return (true);
-}
-
-bool	Client::hasValidCredentials() const
-{
-	return (isValidNickname(_nickname) && isValidUsername(_name));
-}
-
