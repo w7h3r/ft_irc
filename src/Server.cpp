@@ -301,7 +301,7 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 	}
 	else if (cmd.type == "PART")
 		cmdPart(client, cmd, channels);
-	else if (cmd.type == "omer")
+	else if (cmd.type == "LIST")
 		cmdList(clients);
 	else
 		std::cout << "Unknown Command: " << cmd.type << std::endl;

@@ -228,7 +228,7 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
         }
 
         send_msg:
-        std::string msg = ":" + client->getMask() + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " " + cmd.message + "\r\n";
+        std::string msg = ":" + client->getMask() + " " + cmd.type + " " + ((chnl == NULL) ? target->getNickname() : chnl->getName()) + " :" + cmd.message + "\r\n";
         
         if (chnl != NULL)
         {
@@ -395,7 +395,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errNoSuchChannel(client, channelName);
             continue;
         }
-        Client  *target = getClient(targets[i], clients);
+        Client  *target = getClient(targetName, clients);
         if (!chnl->isMember(client))
         {
             errNotOnChannel(client, channelName);
@@ -518,7 +518,7 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
         chnl->addOperator(target);
     else
         chnl->removeOperator(target);
-    std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+" : "-") + target->getNickname() + "o\r\n";
+    std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + ((setFlag == true) ? "+o" : "-o") + target->getNickname() + "\r\n";
     chnl->broadcast(opMsg);
 }
 

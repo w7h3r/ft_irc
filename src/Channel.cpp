@@ -75,11 +75,14 @@ void    Channel::addMode(char op)
 
 void    Channel::removeMode(char op)
 {
-    if (_modes.empty())
+	if (_modes.empty())
         return ;
-    _modes.erase(_modes.find(op), 1);
-    if (_modes.length() == 1 && _modes[0] == '+')
-        _modes = "";
+	size_t pos = _modes.find(op);
+	if (pos != std::string::npos)
+		return ;
+	_modes.erase(pos, 1);
+	if (_modes.length() == 1 && _modes[0] == '+')
+		_modes = "";
 }
 
 bool        Channel::isInviteOnly() const { return (_isInviteOnly); }
