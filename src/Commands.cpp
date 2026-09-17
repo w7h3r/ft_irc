@@ -395,7 +395,8 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errNoSuchChannel(client, channelName);
             continue;
         }
-        Client  *target = getClient(targets[i], clients);
+
+        Client  *target = getClient((targets.size() == 1) ? targets[0] : targets[i], clients);
         if (!chnl->isMember(client))
         {
             errNotOnChannel(client, channelName);

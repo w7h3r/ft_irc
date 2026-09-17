@@ -362,8 +362,10 @@ void	Server::_acceptClient()
 		return ;
 	}
 
-	int	flags	= fcntl(clientFd, F_GETFL, 0);
-	fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
+	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+
+	// int	flags	= fcntl(clientFd, F_GETFL, 0);
+	// fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
 
 	struct	epoll_event ev;
 	ev.events = EPOLLIN;
