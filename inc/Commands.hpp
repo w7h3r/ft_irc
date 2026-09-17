@@ -5,7 +5,7 @@
 #include "Server/Server.hpp"
 #include "templates/TManager.hpp"
 #include <sstream>
-#include <stdexcept>
+#include <iomanip>
 
 
 
@@ -29,8 +29,14 @@ void	cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *
 static inline void  sendNumericReply(Client *client, int code, const std::string &middle, const std::string &trailing)
 {
     std::stringstream ss;
-    ss << ":server " << code << " " << client->getNickname() << " " << middle + " :" + trailing + "\r\n";
+    
+    ss << SERVER_NAME
+       << std::setfill('0') << std::setw(3) << code << " " 
+       << client->getNickname() << " " 
+       << middle << " :" << trailing << "\r\n";
+       
     client->appendToWriteBuffer(ss.str());
+    
     if (Server::getInstance() != NULL)
         Server::getInstance()->enableWriteEvent(client->getFd());
 }
@@ -195,5 +201,6 @@ inline void  rplMyInfo(Client *client)
 {
 	sendNumericReply(client, 004, "", "ft_irc 0.1");
 }
+
 
 #endif

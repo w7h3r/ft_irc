@@ -473,8 +473,9 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     std::string chnlName = chnl->getName();
     rplInviting(client, targetNick, chnlName);
 
+	std::cout << "DEBUG KANAL ADI: [" << chnl->getName() << "]" << std::endl;
     // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname() + " " + chnl->getName() + "\r\n";
+    std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname()  + " :" + chnl->getName() + "\r\n";
     target->appendToWriteBuffer(inviteMsg);
 
 	if (Server::getInstance() != NULL) {
