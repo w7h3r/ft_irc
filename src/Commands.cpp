@@ -389,7 +389,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         Channel *chnl;
         try
         {
-            chnl = channels.get(channelName); // verdiği format doğru olabilir ama channel olmayabilir.
+            chnl = channels.get(channelName);
         }
         catch(const std::exception& e)
         {
@@ -412,7 +412,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errUserNotInChannel(client, targetName, channelName);
             continue; ;
         }
-        std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@127.0.0.1";
+        std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string comment;
         if (!cmd.message.empty())
             comment = cmd.message;
@@ -472,8 +472,6 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     std::string chnlName = chnl->getName();
     rplInviting(client, targetNick, chnlName);
 
-	std::cout << "DEBUG KANAL ADI: [" << chnl->getName() << "]" << std::endl;
-    // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
     std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname()  + " :" + chnl->getName() + "\r\n";
     target->appendToWriteBuffer(inviteMsg);
 

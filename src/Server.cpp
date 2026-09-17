@@ -204,6 +204,8 @@ static bool	isValidName(const std::string& str)
 
 void cmdNick(Client *client, struct Command cmd)
 {
+	if (client->getConnState() == WAITING_PASS)
+		return (NO_R(errNotRegistered(client)));
 	if (cmd.params.empty() || cmd.params[0].empty())
 		return (NO_R(errNoNickGiven(client)));
 	if (!isValidName(cmd.params[0]))
@@ -228,6 +230,9 @@ void cmdNick(Client *client, struct Command cmd)
 
 void cmdUser(Client *client, struct Command cmd)
 {
+	if (client->getConnState() == WAITING_PASS)
+		return (NO_R(errNotRegistered(client)));
+
 	if (cmd.params.empty() || cmd.params[0].empty())
 		return (NO_R(std::cout << "Error: USER command missing username parameter" << std::endl));
 

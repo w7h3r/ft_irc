@@ -78,11 +78,11 @@ void    Channel::removeMode(char op)
 	if (_modes.empty())
         return ;
 	size_t pos = _modes.find(op);
-	if (pos != std::string::npos)
+	if (pos == std::string::npos)
 		return ;
 	_modes.erase(pos, 1);
 	if (_modes.length() == 1 && _modes[0] == '+')
-		_modes = "";
+		_modes.clear();
 }
 
 bool        Channel::isInviteOnly() const { return (_isInviteOnly); }
@@ -134,7 +134,7 @@ bool        Channel::isMember(Client *client) const
     }
     return (0);
 }
-// Operator control stuff
+
 void        Channel::addOperator(Client *client) { _operators.push_back(client); }
 void        Channel::removeOperator(Client *client)
 {
@@ -155,8 +155,6 @@ bool        Channel::isOperator(Client *client) const
     }
     return (0);
 }
-
-// Invite control stuff (what the hell is invite ?)
 
 void        Channel::addInvite(Client *client) { _inviteUsers.push_back(client); }
 void        Channel::removeInvite(Client *client)
