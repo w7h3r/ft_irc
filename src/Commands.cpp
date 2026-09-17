@@ -23,14 +23,14 @@ Channel *createChannel(std::string &name, std::string &key)
     return (dummy);
 }
 
-void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel *> channels)
+void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel *> &channels)
 {
 
     chnl->addMember(client);
     channels.add(chnl->getName(), chnl);
 }
 
-void    removeChannel(Channel *chnl, TManager<std::string, Channel *> channels)
+void    removeChannel(Channel *chnl, TManager<std::string, Channel *> &channels)
 {
     channels.remove(chnl->getKey());
 }
@@ -200,6 +200,8 @@ void        cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client 
     
     for (std::vector<std::string>::iterator it = targets.begin(); it < targets.end(); it++)
     {
+		chnl = NULL;
+		target = NULL;
         if ((*it)[0] == '#' || (*it)[0] == '&')
         {
             try
@@ -343,7 +345,7 @@ void cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *
 	Channel::deleteClientFromAllChannels(client, channels);
 }
 
-void        cmdList(TManager<int, Client *> clients)
+void        cmdList(TManager<int, Client *> &clients)
 {
     std::map<int, Client *> allClients = clients.getAll();
     for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
@@ -355,22 +357,29 @@ void        cmdList(TManager<int, Client *> clients)
 
 void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
-    if (cmd.params.empty())
-    {
-        errNeedMoreParams(client, cmd.type);
-        return ;
-    }
+	if (cmd.params.size() < 2)
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
     std::vector<std::string> targetChannels = splitString(*(cmd.params.begin()), ',');
     std::vector<std::string> targets;
-    if (cmd.params.size() > 1)
-    {
+	if (cmd.params.size() > 1)
         targets = splitString(*(cmd.params.begin() + 1), ',');   
-    }
-    for (size_t i = 0; i < targets.size(); i++)
+
+	if (targetChannels.size() != targets.size() && targetChannels.size() != 1 && targets.size() != 1)
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
+
+	size_t	loopIter = (targetChannels.size() > targets.size()) ? targetChannels.size() : targets.size();
+
+    for (size_t i = 0; i < loopIter; i++)
     {
         
-        std::string channelName = targetChannels[i];
-        std::string targetName = targets[i];
+        std::string channelName = (targetChannels.size() == 1) ? targetChannels[0] : targetChannels[i];
+        std::string targetName = (targets.size() == 1) ? targets[0] : targets[i];
         if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&'))
         {
             errNoSuchChannel(client, channelName);
@@ -407,8 +416,14 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         if (!cmd.message.empty())
             comment = cmd.message;
         kickMsg(chnl, kickerMask, targetName, comment);
-        client->decrementChannelCount();
+		target->decrementChannelCount();
         chnl->removeMember(target);
+
+		if (chnl->getMemberList().empty())
+		{
+			channels.remove(channelName);
+			delete chnl;
+		}
     }
 }
 
@@ -494,7 +509,7 @@ static void    channelModeOp(Client *client, std::string param, Channel *chnl, T
         errNoSuchNick(client, param);
         return ;
     }
-    if (chnl->isMember(target))
+    if (!chnl->isMember(target))
     {
         errUserNotInChannel(client, target->getNickname(), chnl->getName());
         return ;
@@ -652,6 +667,7 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
         errNeedMoreParams(client, cmd.type);
         if (Server::getInstance() != NULL)
             Server::getInstance()->enableWriteEvent(client->getFd());
+		return ;
     }
     std::vector<std::string> targets = splitString(cmd.params[0], ',');   
 
@@ -676,5 +692,11 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
         std::string partMsg = ":" + senderMask + " PART " + *it + "\r\n"; 
         chnl->broadcast(partMsg);
         chnl->removeMember(client);
+		client->decrementChannelCount();
+		if (chnl->getMemberList().empty())
+		{
+			channels.remove(*it);
+			delete chnl;
+		}
     }
 }

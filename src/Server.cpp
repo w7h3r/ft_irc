@@ -77,16 +77,14 @@ void	Server::_initSocket()
     serverAddr.sin_addr.s_addr = INADDR_ANY;
     serverAddr.sin_port = htons(_port);
 
-if (bind(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
+	if (bind(_socket, (struct sockaddr*)&serverAddr, sizeof(serverAddr)) < 0)
         throw std::runtime_error("Error: Bind do not success. Ports already in use");
 
-    if (listen(_socket, SOMAXCONN) < 0)
-        throw std::runtime_error("Error: listen not working ");
-
-    int flags = fcntl(_socket, F_GETFL, 0);
-    if (flags == -1 || fcntl(_socket, F_SETFL, flags | O_NONBLOCK) == -1)
-        throw std::runtime_error("Hata: Non-blocking not set");
-
+	if (listen(_socket, SOMAXCONN) < 0)
+		throw std::runtime_error("Error: listen not working ");
+	
+	if (fcntl(_socket, F_SETFL, O_NONBLOCK) < 0)
+		throw std::runtime_error("Error: Non-blocking mode not set");
 }
 
 void	Server::_initEpoll()
@@ -333,7 +331,7 @@ void    Server::_readerClient(int fd)
                 
                 decideCommand(newClient, cmd, _clients, _channel, _password);
 
-                if (_clients.get(fd) == NULL)
+                if (!_clients.exists(fd))
                 {
                     std::cout << "Client " << fd << " silindi, okuma döngüsünden çıkılıyor." << std::endl;
                     return ;
@@ -419,16 +417,16 @@ void    Server::_refuseClient(int fd)
 
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
     close(fd); 
-    std::cout << "epoll table removing finish" << std::endl;
     
+	if (!_clients.exists(fd))
+		return ;
+
     Client    *delClient = _clients.get(fd);
-	if (delClient)
-    {
-        std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
-        _deleteClientFromAllChannels(delClient);
-		delete delClient;
-        _clients.remove(fd);
-    }
+	std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
+
+	_deleteClientFromAllChannels(delClient);
+	delete delClient;
+	_clients.remove(fd);
 }
 
 void	Server::_signalHandler(int signum)
