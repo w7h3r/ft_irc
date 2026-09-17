@@ -114,7 +114,12 @@ Client      *Channel::getMember(const std::string &nick) const
 void        Channel::removeMember(Client *client)
 {
     for (std::vector<Client *>::iterator it = _members.begin(); it != _members.end();)
-        (*it == client) ? _members.erase(it) : it++;
+		{
+		if (*it == client)
+			_members.erase(it);
+		else
+			it++;
+	}
 }
 
 bool        Channel::isMember(Client *client) const
@@ -131,7 +136,12 @@ void        Channel::addOperator(Client *client) { _operators.push_back(client);
 void        Channel::removeOperator(Client *client)
 {
     for (std::vector<Client *>::iterator it = _operators.begin(); it != _operators.end();)
-        (*it == client) ? _operators.erase(it) : it++;
+	{
+		if (*it == client)
+			_operators.erase(it);
+		else
+			it++;
+	}
 }
 bool        Channel::isOperator(Client *client) const
 {
@@ -149,7 +159,12 @@ void        Channel::addInvite(Client *client) { _inviteUsers.push_back(client);
 void        Channel::removeInvite(Client *client)
 {
     for (std::vector<Client *>::iterator it = _inviteUsers.begin(); it < _inviteUsers.end();)
-        (*it == client) ? _inviteUsers.erase(it) : it++;
+		{
+		if (*it == client)
+			_inviteUsers.erase(it);
+		else
+			it++;
+	}
 }
 bool        Channel::isInvite(Client *client) const
 {

@@ -257,6 +257,8 @@ void cmdCap(Client *client, struct Command cmd)
 	}
 }
 
+// not sure about this method, i'll get back to it later.
+
 void	botPardus(Client *client)
 {
 	std::string response = "'pardus meows in turkish :3'\r\n";
@@ -282,6 +284,7 @@ static void	decideCommand(Client *client, struct Command cmd, TManager<int, Clie
 		return errNotRegistered(client);
 	else if (cmd.type == "JOIN")
 		cmdJoin(client, cmd, channels);
+
 	else if (cmd.type == "PARDUS")
 		botPardus(client);
 	else if (cmd.type == "KICK")

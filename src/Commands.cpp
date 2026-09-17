@@ -13,6 +13,7 @@
 #include "../inc/Commands.hpp"
 #include "../inc/Server/Server.hpp"
 #include <sstream>
+#include <climits>
 #include <cstdlib>
 #include <sys/socket.h>
 
@@ -32,7 +33,7 @@ void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel 
 
 void    removeChannel(Channel *chnl, TManager<std::string, Channel *> &channels)
 {
-    channels.remove(chnl->getKey());
+    channels.remove(chnl->getName());
 }
 
 std::vector<std::string> splitString(const std::string &str, char delimiter)
