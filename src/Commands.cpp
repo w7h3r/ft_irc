@@ -13,6 +13,7 @@
 #include "../inc/Commands.hpp"
 #include "../inc/Server/Server.hpp"
 #include <sstream>
+#include <climits>
 #include <cstdlib>
 #include <sys/socket.h>
 
@@ -32,7 +33,7 @@ void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel 
 
 void    removeChannel(Channel *chnl, TManager<std::string, Channel *> &channels)
 {
-    channels.remove(chnl->getKey());
+    channels.remove(chnl->getName());
 }
 
 std::vector<std::string> splitString(const std::string &str, char delimiter)
@@ -471,8 +472,9 @@ void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &c
     std::string chnlName = chnl->getName();
     rplInviting(client, targetNick, chnlName);
 
+	std::cout << "DEBUG KANAL ADI: [" << chnl->getName() << "]" << std::endl;
     // std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname() + " " + chnl->getName() + "\r\n";
+    std::string inviteMsg = ":" + client->getMask() + " INVITE " + target->getNickname()  + " :" + chnl->getName() + "\r\n";
     target->appendToWriteBuffer(inviteMsg);
 
 	if (Server::getInstance() != NULL) {

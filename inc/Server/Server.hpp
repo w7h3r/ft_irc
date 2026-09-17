@@ -24,6 +24,7 @@
 # define DEFAULT_PORT 4242
 # define MAX_EVENTS	512 // MAX event size: Genellikle ağlarla ilgili TCP IP server dokümanlarında nonblock sistemlerde verimli bir event sayısı olarak kabul edilir ne sistemi çok yormayacak bir sayı ne de çok küçük bir sayı diğer bir alternatif 1024
 # define DEFAULT_PASSWORD "gebze"
+# define SERVER_NAME "NE DIIN LA "
 
 class	Server
 {
