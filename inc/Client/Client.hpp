@@ -108,8 +108,6 @@ class	Client
 		void			appendToReadBuffer(const std::string& data);
 		void			appendToWriteBuffer(const std::string& data);
 
-		bool			hasValidCredentials() const;
-
 		std::string&	getWriteBuffer();
 		void			clearWriteBuffer();
 
