@@ -78,7 +78,7 @@ class	Client
 
 		int				getFd() const;
 		std::string		getIp() const;
-		std::string		getMask() const; //omer: client mask oluşturup döndürür.
+		std::string		getMask() const;
 		bool			isOP() const;
 		void			setOP(bool op);
 

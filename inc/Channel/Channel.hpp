@@ -14,7 +14,6 @@
 # define CHANNEL_HPP
 
 #include <vector>
-#include <iostream>
 #include <string>
 
 #include "../Client/Client.hpp"

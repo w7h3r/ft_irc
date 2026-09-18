@@ -6,7 +6,7 @@
 #    By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2026/03/23 16:47:46 by alermi            #+#    #+#              #
-#    Updated: 2026/05/24 21:23:06 by muokcan          ###   ########.fr        #
+#    Updated: 2026/09/18 15:58:05 by alermi           ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,18 +43,25 @@ OBJ_DIR     = obj
 # ============================================================
 #                       SOURCE & HEADER FILES
 # ============================================================
-# Proje ilerledikçe kendi oluşturduğun header'ları buraya ekle
-HEADERS     = $(INC_DIR)/Server/Server.hpp \
-              $(INC_DIR)/Client/Client.hpp \
-              $(INC_DIR)/Channel/Channel.hpp \
-			  $(INC_DIR)/Commands.hpp
+HEADERS     = $(INC_DIR)/Server/Server.hpp        	\
+              $(INC_DIR)/Client/Client.hpp        	\
+              $(INC_DIR)/Channel/Channel.hpp    	\
+              $(INC_DIR)/Commands.hpp            	\
+              $(INC_DIR)/utils.hpp
 
-# Proje ilerledikçe kendi oluşturduğun cpp'leri buraya ekle
-SRC         = $(SRC_DIR)/main.cpp \
-              $(SRC_DIR)/Server.cpp \
-              $(SRC_DIR)/Client.cpp \
-              $(SRC_DIR)/Channel.cpp \
-			  $(SRC_DIR)/Commands.cpp
+SRC         = $(SRC_DIR)/main.cpp                  	\
+              $(SRC_DIR)/Server.cpp                 \
+              $(SRC_DIR)/Client.cpp                 \
+              $(SRC_DIR)/Channel.cpp                \
+              $(SRC_DIR)/Commands.cpp               \
+              $(SRC_DIR)/commands/cmdInvite.cpp     \
+              $(SRC_DIR)/commands/cmdKick.cpp       \
+              $(SRC_DIR)/commands/cmdJoin.cpp       \
+              $(SRC_DIR)/commands/cmdPrivMsg.cpp    \
+              $(SRC_DIR)/commands/cmdTopic.cpp      \
+			  $(SRC_DIR)/commands/cmdMode.cpp		\
+              $(SRC_DIR)/commands/cmdQuit.cpp		\
+			  $(SRC_DIR)/utils.cpp
 
 OBJS        = $(patsubst $(SRC_DIR)/%.cpp, $(OBJ_DIR)/%.o, $(SRC))
 
@@ -66,19 +73,17 @@ all: $(NAME)
 # ============================================================
 #                    BUILD EXECUTABLE
 # ============================================================
-$(NAME): $(OBJ_DIR) $(OBJS)
+$(NAME): $(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
-	@echo "$(GREEN)✔ Derleme tamamlandı: $(NAME)$(RESET)"
+	@echo "$(GREEN)✔ Derleme tamamlandi: $(NAME)$(RESET)"
 
 # ============================================================
 #                OBJECT FILE COMPILATION RULE
 # ============================================================
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(HEADERS)
+	@mkdir -p $(dir $@)
 	@echo "$(CYAN)Compiling: $<...$(RESET)"
-	@$(CXX) $(CXXFLAGS) -I $(INC_DIR) -c $< -o $@
-
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 # ============================================================
 #                        CLEANING
@@ -110,16 +115,12 @@ runv: all
 help:
 	@echo ""
 	@echo "$(CYAN)====================  MAKE HELP  ====================$(RESET)"
-	@echo " $(GREEN)make$(RESET)         → Programı derle"
+	@echo " $(GREEN)make$(RESET)         → Programi derle"
 	@echo " $(YELLOW)make clean$(RESET)   → Objeleri sil"
-	@echo " $(RED)make fclean$(RESET)  → Objeleri ve executable'ı sil"
-	@echo " $(CYAN)make re$(RESET)      → Baştan derle"
-	@echo " $(GREEN)make run$(RESET)     → Standart çalıştır (Port: 6667, Pass: 1234)"
-	@echo " $(YELLOW)make runv$(RESET)    → Valgrind ile çalıştır (File descriptor takibi aktif)"
-	@echo ""
-	@echo " $(CYAN)💡 İpucu: Özel port ve şifre ile başlatmak için:$(RESET)"
-	@echo "    make run PORT=8080 PASS=secret"
-	@echo "$(CYAN)====================================================$(RESET)"
+	@echo " $(RED)make fclean$(RESET)  → Objeleri ve executable'i sil"
+	@echo " $(CYAN)make re$(RESET)      → Bastan derle"
+	@echo " $(GREEN)make run$(RESET)     → Standart calistir (Port: 6667, Pass: 1234)"
+	@echo " $(YELLOW)make runv$(RESET)    → Valgrind ile calistir"
 	@echo ""
 
 .PHONY: all clean fclean re help run runv

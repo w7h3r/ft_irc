@@ -7,25 +7,16 @@
 #include <sstream>
 #include <iomanip>
 
-
-
-Channel *getChannel(std::string &chnl_name);
-void    addChannel(Channel *chnl);
-void    removeChannel(Channel *chnl);
-
-
 void	cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
 void	cmdKick(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdInvite(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdPrivMsg(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels);
 void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
-void    cmdList(TManager<int, Client *> &clients);
-
-
 void    cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);  
 void	cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels);
 
+void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword);
 static inline void  sendNumericReply(Client *client, int code, const std::string &middle, const std::string &trailing)
 {
     std::stringstream ss;

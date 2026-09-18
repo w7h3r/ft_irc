@@ -6,29 +6,28 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:05 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/15 23:29:27 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/18 15:59:23 by alermi           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "../inc/Server/Server.hpp"
 #include "../inc/Commands.hpp"
 #include "../inc/Client/Client.hpp"
+
 #include <iostream>
+#include <string>
 #include <stdexcept>
-#include <sys/epoll.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
 #include <cerrno>
+#include <csignal>
+
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <sys/epoll.h>
+#include <netinet/in.h>
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include <stdexcept>
-#include <sys/types.h>
-#include <string>
 #include <unistd.h>
-#include <csignal>
-
-#define NO_R (void)
 
 Server	*Server::_instance = NULL;
 
@@ -112,9 +111,7 @@ void	Server::_modifyEpoll(int fd, int events)
 	ev.data.fd = fd;
 
 	if (epoll_ctl(_epollFd, EPOLL_CTL_MOD, fd, &ev))
-	{
 		std::cerr << "Epoll Change Mode Error" << std::endl;
-	}
 }
 
 void    Server::_writerClient(int fd)
@@ -143,173 +140,8 @@ void    Server::_writerClient(int fd)
         if (output.empty())
             _modifyEpoll(fd, EPOLLIN);
     }
-    else if (byteCount == 0 || (byteCount < 0 && errno != EAGAIN && errno != EWOULDBLOCK))
-    {
+    else if (byteCount <= 0)
         _refuseClient(fd);
-    }
-}
-
-void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
-{
-	if (cmd.params.empty() || cmd.params[0].empty())
-		return (NO_R(errNeedMoreParams(client, cmd.type)));
-
-	if (client->getConnState() != WAITING_PASS)
-		return (NO_R(errAlreadyRegistered(client)));
-
-	if (cmd.params[0] != serverPassword)
-	{
-		std::cout << "Password mismatch for client " << client->getFd() << std::endl;
-		client->setConnState(REFUSED);
-		return (NO_R(errPasswdMismatch(client)));
-	}
-
-	client->setConnState(WAITING_NICK);
-}
-
-std::vector<Client *> Server::getAllClients()
-{
-	std::vector<Client *> allClients;
-	std::map<int, Client *> clientsMap = _clients.getAll();
-	for (std::map<int, Client *>::const_iterator it = clientsMap.begin(); it != clientsMap.end(); ++it)
-	{
-		allClients.push_back(it->second);
-	}
-	return allClients;
-}
-
-static Client *getClientByNickname(const std::string& nickname, const std::vector<Client *>& clients)
-{
-	for (std::vector<Client *>::const_iterator it = clients.begin(); it != clients.end(); ++it)
-	{
-		Client *client = *it;
-		if (client && client->getNickname() == nickname)
-			return client;
-	}
-	return NULL;
-}
-
-static bool	isValidName(const std::string& str)
-{
-	
-	if (str.empty())
-		return (false);
-	for (size_t i = 0; i < str.length(); ++i)
-	{
-		if (!isalnum(str[i]) && str[i] != '-' && str[i] != '_')
-			return (false);
-	}
-	return (true);
-}
-
-void cmdNick(Client *client, struct Command cmd)
-{
-	if (client->getConnState() == WAITING_PASS)
-		return (NO_R(errNotRegistered(client)));
-	if (cmd.params.empty() || cmd.params[0].empty())
-		return (NO_R(errNoNickGiven(client)));
-	if (!isValidName(cmd.params[0]))
-		return (NO_R(errErroneusNickname(client, cmd.params[0])));
-
-	std::string nickname = cmd.params[0];
-	Client *existingClient = getClientByNickname(nickname, Server::getInstance()->getAllClients());
-	if (existingClient && existingClient != client)
-		return (NO_R(errNicknameInUse(client, nickname)));
-	client->setNickname(nickname);
-	if (client->getUsername().empty())
-		client->setConnState(WAITING_INFO);
-	else if (!client->isRegistered())
-	{
-		client->setConnState(ACCEPT);
-		rplWelcome(client);
-		rplYourHost(client);
-		rplCreated(client);
-		rplMyInfo(client);
-	}
-}
-
-void cmdUser(Client *client, struct Command cmd)
-{
-	if (client->getConnState() == WAITING_PASS)
-		return (NO_R(errNotRegistered(client)));
-
-	if (cmd.params.empty() || cmd.params[0].empty())
-		return (NO_R(std::cout << "Error: USER command missing username parameter" << std::endl));
-
-	client->setUsername(cmd.params[0]);
-	if (!client->getNickname().empty() && !client->isRegistered())
-	{
-		client->setConnState(ACCEPT);
-		rplWelcome(client);
-		rplYourHost(client);
-		rplCreated(client);
-		rplMyInfo(client);
-	}
-	else if (client->getNickname().empty())
-		client->setConnState(WAITING_INFO);
-}
-
-void cmdCap(Client *client, struct Command cmd)
-{
-	if (!cmd.params.empty() && cmd.params[0] == "LS")
-    {
-        std::string capResponse = ":ft_irc CAP * LS :\r\n";
-        client->appendToWriteBuffer(capResponse);
-        std::cout << "Client " << client->getFd() << " requested CAP LS. Responded with: " << capResponse << std::endl;
-    }
-	else if (!cmd.params.empty() && cmd.params[0] == "END")
-	{
-	}
-}
-
-void	botPardus(Client *client)
-{
-	std::string response = "'pardus meows in turkish :3'\r\n";
-
-	client->appendToWriteBuffer(response);
-	if (Server::getInstance() != NULL)
-		Server::getInstance()->enableWriteEvent(client->getFd());
-}
-
-static void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
-{
-	if (cmd.type == "PASS")
-		return cmdPass(client, cmd, serverPassword);
-	if (client->isRefused() || client->isDisconnected())
-		return ;
-	else if (cmd.type == "NICK")
-		return cmdNick(client, cmd);
-	else if (cmd.type == "USER")
-		return cmdUser(client, cmd);
-	else if (cmd.type == "CAP")
-		return cmdCap(client, cmd);
-	if (client->getConnState() != ACCEPT)
-		return errNotRegistered(client);
-	else if (cmd.type == "JOIN")
-		cmdJoin(client, cmd, channels);
-	else if (cmd.type == "PARDUS")
-		botPardus(client);
-	else if (cmd.type == "KICK")
-		cmdKick(client, cmd, clients, channels);
-	else if (cmd.type == "INVITE")
-		cmdInvite(client, cmd, clients, channels);
-	else if (cmd.type == "TOPIC")
-		cmdTopic(client, cmd, channels);
-	else if (cmd.type == "MODE")
-		cmdMode(client, cmd, clients, channels);
-	else if (cmd.type == "PRIVMSG")
-		cmdPrivMsg(client, cmd, clients, channels);
-	else if (cmd.type == "QUIT")
-	{
-		client->setConnState(DISCONNECT);
-		cmdQuit(client, cmd, channels);
-	}
-	else if (cmd.type == "PART")
-		cmdPart(client, cmd, channels);
-	else if (cmd.type == "LIST")
-		cmdList(clients);
-	else
-		std::cout << "Unknown Command: " << cmd.type << std::endl;
 }
 
 void    Server::_readerClient(int fd)
@@ -367,9 +199,8 @@ void	Server::_acceptClient()
 		return ;
 	}
 
-	int	flags	= fcntl(clientFd, F_GETFL, 0);
-	fcntl(clientFd, F_SETFL, flags | O_NONBLOCK);
-
+	fcntl(clientFd, F_SETFL, O_NONBLOCK);
+	
 	struct	epoll_event ev;
 	ev.events = EPOLLIN;
 	ev.data.fd = clientFd;
