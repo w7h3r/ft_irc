@@ -21,10 +21,12 @@ static inline void  sendNumericReply(Client *client, int code, const std::string
 {
     std::stringstream ss;
     
-    ss << SERVER_NAME
+    ss << ":" <<SERVER_NAME << " "
        << std::setfill('0') << std::setw(3) << code << " " 
-       << client->getNickname() << " " 
-       << middle << " :" << trailing << "\r\n";
+       << client->getNickname() << " ";
+	if (!middle.empty())
+		ss << middle;
+       ss << " :" << trailing << "\r\n";
        
     client->appendToWriteBuffer(ss.str());
     
