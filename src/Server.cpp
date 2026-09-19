@@ -114,35 +114,66 @@ void	Server::_modifyEpoll(int fd, int events)
 		std::cerr << "Epoll Change Mode Error" << std::endl;
 }
 
-void    Server::_writerClient(int fd)
+void Server::_writerClient(int fd)
 {
     if (!_clients.exists(fd))
         return ;
-
-    Client    *newClient = _clients.get(fd);
-	if (!newClient)
+    Client *newClient = _clients.get(fd);
+    if (!newClient)
         return ;
-	if (newClient->isDisconnected() || newClient->isRefused())
-	{
-		_refuseClient(fd);
-		return ;
-	}
-    std::string    &output = newClient->getWriteBuffer();
+    std::string &output = newClient->getWriteBuffer();
+    if (!output.empty())
+    {
+        ssize_t byteCount = send(fd, output.c_str(), output.size(), MSG_NOSIGNAL);
+        if (byteCount > 0) {
+            output.erase(0, byteCount);
+        } 
+        else if (byteCount <= 0) {
+            _refuseClient(fd);
+            return ;
+        }
+    }
+
     if (output.empty())
     {
-        _modifyEpoll(fd, EPOLLIN);
-        return ;
-    }
-    ssize_t byteCount = send(fd, output.c_str(), output.size(), MSG_NOSIGNAL);
-    if (byteCount > 0)
-    {
-        output.erase(0, byteCount);
-        if (output.empty())
+        if (newClient->isDisconnected() || newClient->isRefused())		
+			_refuseClient(fd);
+        else
             _modifyEpoll(fd, EPOLLIN);
     }
-    else if (byteCount <= 0)
-        _refuseClient(fd);
 }
+
+// the old one
+
+// void    Server::_writerClient(int fd)
+// {
+//     if (!_clients.exists(fd))
+//         return ;
+//
+//     Client    *newClient = _clients.get(fd);
+// 	if (!newClient)
+//         return ;
+// 	if (newClient->isDisconnected() || newClient->isRefused())
+// 	{
+// 		_refuseClient(fd);
+// 		return ;
+// 	}
+//     std::string    &output = newClient->getWriteBuffer();
+//     if (output.empty())
+//     {
+//         _modifyEpoll(fd, EPOLLIN);
+//         return ;
+//     }
+//     ssize_t byteCount = send(fd, output.c_str(), output.size(), MSG_NOSIGNAL);
+//     if (byteCount > 0)
+//     {
+//         output.erase(0, byteCount);
+//         if (output.empty())
+//             _modifyEpoll(fd, EPOLLIN);
+//     }
+//     else if (byteCount <= 0)
+//         _refuseClient(fd);
+// }
 
 void    Server::_readerClient(int fd)
 {
@@ -252,7 +283,7 @@ void    Server::_refuseClient(int fd)
     struct    epoll_event    dummy;
 
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
-    close(fd); 
+    //close(fd); ve _writerClient değişti
     
 	if (!_clients.exists(fd))
 		return ;
@@ -264,6 +295,27 @@ void    Server::_refuseClient(int fd)
 	delete delClient;
 	_clients.remove(fd);
 }
+
+// old one
+
+// void    Server::_refuseClient(int fd)
+// {
+//     std::cout << "[Disconnected Client Connection]" << std::endl;
+//     struct    epoll_event    dummy;
+//
+//     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
+//     close(fd); 
+//
+// 	if (!_clients.exists(fd))
+// 		return ;
+//
+//     Client    *delClient = _clients.get(fd);
+// 	std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
+//
+// 	_deleteClientFromAllChannels(delClient);
+// 	delete delClient;
+// 	_clients.remove(fd);
+// }
 
 void	Server::_signalHandler(int signum)
 {
