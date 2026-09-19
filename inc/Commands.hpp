@@ -25,7 +25,7 @@ static inline void  sendNumericReply(Client *client, int code, const std::string
        << std::setfill('0') << std::setw(3) << code << " " 
        << client->getNickname() << " ";
 	if (!middle.empty())
-		ss << middle;
+		ss << " " << middle;
        ss << " :" << trailing << "\r\n";
        
     client->appendToWriteBuffer(ss.str());
