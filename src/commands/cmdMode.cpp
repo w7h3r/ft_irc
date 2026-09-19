@@ -120,20 +120,25 @@ void    channelModeTopic(Client *client, Channel *chnl, bool setFlag)
 
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
-    if (cmd.params.size() == 1)
-    {
-        try
-        {
-            Channel *chnl = channels.get(cmd.params[0]);
-            rplChannelModeIs(client, chnl->getName(), chnl->getModes(), chnl->getModeParams());
-        }
-        catch(const std::exception& e)
-        {
-            return ;
-        }
-        
-        return ;
-    }
+    if (cmd.params.size() < 2)
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
+	if (cmd.params.size() == 1)
+	{
+		try 
+		{
+			Channel *chnl = channels.get(cmd.params[0]);
+			rplChannelModeIs(client, chnl, chnl->getModes(), chnl->getModeParams());
+		}
+		catch (const std::exception &e)
+		{
+			errNoSuchChannel(client, cmd.params[0]);
+		}
+			return ;
+	}
+
     Channel *chnl;
     try
     {
