@@ -26,7 +26,7 @@ static inline void  sendNumericReply(Client *client, int code, const std::string
        << client->getNickname();
 	if (!middle.empty())
 		ss << " " << middle;
-       ss << " :" << trailing << "\r\n";
+    ss << " :" << trailing << "\r\n";
        
     client->appendToWriteBuffer(ss.str());
     
@@ -200,5 +200,9 @@ inline void	rplChannelModeIs(Client *client, Channel *chnl, const std::string &c
 	rplChannelModeIs(client, chnl->getName(), chnlModes, chnlModeParams);
 }
 
+inline void	errUnknownCommand(Client *client, const std::string &cmd)
+{
+	sendNumericReply(client, 421, cmd, "Unknown command");
+}
 
 #endif

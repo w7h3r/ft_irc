@@ -24,7 +24,7 @@
 # define DEFAULT_PORT 4242
 # define MAX_EVENTS	512 
 # define DEFAULT_PASSWORD "gebze"
-# define SERVER_NAME "NE DIIN LA "
+# define SERVER_NAME "ircserv"
 
 class	Server
 {

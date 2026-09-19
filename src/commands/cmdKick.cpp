@@ -30,6 +30,17 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
 	if (cmd.params.size() > 1)
         targets = splitString(*(cmd.params.begin() + 1), ',');   
 
+	if (targetChannels.empty() || targets.empty())
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
+	if (targetChannels.size() > 1 && targets.size() > 1 && targetChannels.size() != targets.size())
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
+
 	if (targetChannels.size() != targets.size() && targetChannels.size() != 1 && targets.size() != 1)
 	{
 		errNeedMoreParams(client, cmd.type);
