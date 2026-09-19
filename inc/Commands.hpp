@@ -193,5 +193,10 @@ inline void  rplMyInfo(Client *client)
 	sendNumericReply(client, 004, "", "ft_irc 0.1");
 }
 
+inline void	rplChannelModeIs(Client *client, Channel *chnl, const std::string &chnlModes, const std::string &chnlModeParams)
+{
+	rplChannelModeIs(client, chnl->getName(), chnlModes, chnlModeParams);
+}
+
 
 #endif
