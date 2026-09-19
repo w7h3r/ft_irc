@@ -12,8 +12,5 @@ Client      *getClient(std::string targetName, TManager<int, Client *> &clients)
 Channel *createChannel(std::string &name, std::string &key);
 void    addChannel(Channel *chnl, Client *client, TManager<std::string, Channel *> &channels);
 void    removeChannel(Channel *chnl, TManager<std::string, Channel *> &channels);
-void        cmdList(TManager<int, Client *> &clients);
-
-
 
 #endif

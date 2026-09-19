@@ -51,14 +51,4 @@ void    removeChannel(Channel *chnl, TManager<std::string, Channel *> &channels)
     channels.remove(chnl->getName());
 }
 
-void        cmdList(TManager<int, Client *> &clients)
-{
-    std::map<int, Client *> allClients = clients.getAll();
-    for (std::map<int, Client *>::iterator it = allClients.begin(); it != allClients.end(); it++)
-    {
-        Client *target = it->second;
-        std::cout << "Nickname = " + target->getNickname() << " FD = " << target->getFd() << std::endl;
-    }
-}
-
 
