@@ -120,6 +120,11 @@ void    channelModeTopic(Client *client, Channel *chnl, bool setFlag)
 
 void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels)
 {
+	if (cmd.params.empty())
+	{
+		errNeedMoreParams(client, cmd.type);
+		return ;
+	}
 	if (cmd.params.size() == 1)
 	{
 		try 
