@@ -179,7 +179,7 @@ bool        Channel::isInvite(Client *client) const
 
 void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels)
 {
-    std::map<std::string, Channel *> allChannels = channels.getAll();
+    std::map<std::string, Channel *> &allChannels = channels.getAll();
 	std::map<std::string, Channel *>::iterator it = allChannels.begin();
 
 	while (it != allChannels.end())
