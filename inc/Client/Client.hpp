@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/18 14:16:44 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/13 16:01:48 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/20 16:29:05 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,11 +113,12 @@ class	Client
 
 		bool			hasCompleteCommand() const;
 		std::string		extractCommand();
-
 		void			incrementChannelCount();
 		void			decrementChannelCount();
 		int				getChannelCount() const;
 
+		void			sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> channels) const;
+			
 		Command			parseMessage(const std::string& message);
 };
 

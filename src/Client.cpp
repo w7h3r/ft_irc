@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:09 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/13 16:03:24 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/20 16:29:34 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,4 +148,15 @@ Command	Client::parseMessage(const std::string& rawMessage)
 			command.params.push_back(words[i]);
 	}
 	return (command);
+}
+
+void	Client::sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> channels) const
+{
+	std::map<std::string, Channel *> allChnls = channels.getAll();
+	for (std::map<std::string, Channel *>::iterator it = allChnls.begin(); it != allChnls.end(); it++)
+	{
+		Channel *chnl = it->second;
+		if (chnl->isMember(client))
+			chnl->broadcast(msg);
+	}
 }
