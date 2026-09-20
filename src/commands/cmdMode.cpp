@@ -166,25 +166,23 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
     {
         char op = cmd.params[1][i];
         
-        if (op == '+' || op == '-') 
-        {
-            setFlag = (op == '+');
-        }
-        else if (op == 'i' || op == 't') 
+		if (op == '+' || op == '-') 
+		{
+		    setFlag = (op == '+');
+		}
+		else if (op == 'i' || op == 't') 
         {
             if (op == 'i')
                 channelModeInvite(client, chnl, setFlag);
             if (op == 't')
                 channelModeTopic(client, chnl, setFlag);
         }
-        else if (op == 'o' || op == 'k' || (op == 'l' && setFlag)) 
+		else if (op == 'o' || op == 'k' || (op == 'l' && setFlag)) 
         {
             if (argIndex < cmd.params.size())
             {
                 if (op == 'o')
                     channelModeOp(client, cmd.params[argIndex], chnl, clients, setFlag);
-                else if (op == 'k')
-                    channelModeKey(client, cmd.params[argIndex], chnl, setFlag);
                 else if (op == 'l')
                     channelModeLimit(client, cmd.params[argIndex], chnl, setFlag);
                 argIndex++;
@@ -195,9 +193,27 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
                 continue;
             }        
         }
-        else if (op == 'l' && !setFlag)
+		else if (op == 'k')
+		{
+			if (setFlag)
+			{
+				if (argIndex < cmd.params.size())
+				{
+					channelModeKey(client, cmd.params[argIndex], chnl, setFlag);
+					argIndex++;
+				}
+				else
+				{
+					errNeedMoreParams(client, cmd.type);
+					continue;
+				}
+			}
+			else
+				channelModeKey(client, dummy, chnl, setFlag);
+		}
+		else if (op == 'l' && !setFlag)
             channelModeLimit(client, dummy,chnl, setFlag);
-        else
+		else
             errUnknownMode(client, op);
     }
 }
