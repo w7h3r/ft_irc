@@ -69,18 +69,20 @@ void cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *
 {
 	Server::getInstance()->printServerState();
     std::string reason = "Client exited";
-    if (!cmd.message.empty())
-        reason = cmd.message;
-    else if (cmd.params.size() > 0)
+	if (!cmd.message.empty())
+		reason = cmd.message;
+	else if	(cmd.params.size() > 0)
         reason = cmd.params[0];
 
-    std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
-    std::string quitMsg = ":" + senderMask + " QUIT :" + reason + "\r\n";
+	
+	client->setConnState(DISCONNECT);
+	std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
+	std::string quitMsg = ":" + senderMask + " QUIT :" + reason + "\r\n";
 
-    std::map<std::string, Channel*> &allChannels = channels.getAll();
-    for (std::map<std::string, Channel*>::iterator it = allChannels.begin(); it != allChannels.end(); ++it)
-    {
-        Channel *chnl = it->second;
+	std::map<std::string, Channel*> &allChannels = channels.getAll();
+	for (std::map<std::string, Channel*>::iterator it = allChannels.begin(); it != allChannels.end(); ++it)
+	{
+	    Channel *chnl = it->second;
 
         if (chnl->isMember(client))
         {

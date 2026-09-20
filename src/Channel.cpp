@@ -21,7 +21,7 @@ Channel::Channel(const std::string &name, const std::string &key)
     _key = key;
     _isInviteOnly = 0;
     _isUserLimit = 0;
-    _isTopicRestricted = 0;
+    _isTopicRestricted = 1;
     _userLimit = 0;
 }
 

@@ -90,6 +90,21 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errUserNotInChannel(client, targetName, channelName);
             continue ;
         }
+		if (target->isOP())
+		{
+			chnl->removeOperator(target);
+			if (chnl->getMemberList().size() > 1)
+			{
+				if (*chnl->getMemberList().begin() == target)
+				{
+					chnl->addOperator(*(chnl->getMemberList().begin() + 1));
+					goto kick;
+				}
+				chnl->addOperator(*chnl->getMemberList().begin());
+			}
+
+		}
+		kick:
         std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string comment;
         if (!cmd.message.empty())
@@ -97,11 +112,11 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         kickMsg(chnl, kickerMask, targetName, comment);
 		target->decrementChannelCount();
         chnl->removeMember(target);
-
 		if (chnl->getMemberList().empty())
 		{
 			channels.remove(channelName);
 			delete chnl;
 		}
+		
     }
 }

@@ -210,12 +210,11 @@ void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &
 	else if (cmd.type == "PRIVMSG")
 		cmdPrivMsg(client, cmd, clients, channels);
 	else if (cmd.type == "QUIT")
-	{
-		client->setConnState(DISCONNECT);
 		cmdQuit(client, cmd, channels);
-	}
 	else if (cmd.type == "PART")
 		cmdPart(client, cmd, channels);
+	else if (cmd.type == "WHO")
+		return ;
 	else
 	{
 		errUnknownCommand(client, cmd.type);

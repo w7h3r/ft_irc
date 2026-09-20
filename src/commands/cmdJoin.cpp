@@ -76,7 +76,7 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
                 errInviteOnlyChan(client, channelName);
                 continue;
             }
-            if (chnl->isUserLimit() && (chnl->getUserLimit() == chnl->getMemberList().size()))
+            if (chnl->isUserLimit() && (chnl->getUserLimit() <= chnl->getMemberList().size()))
             {
                 errChannelIsFull(client, channelName);
                 continue;
