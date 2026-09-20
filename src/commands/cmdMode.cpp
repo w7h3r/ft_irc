@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cmdMode.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/18 15:52:35 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/18 15:52:36 by alermi           ###   ########.fr       */
+/*   Updated: 2026/09/20 19:33:21 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,7 +98,7 @@ void    channelModeLimit(Client *client, std::string &param , Channel *chnl, boo
     {
         if (chnl->isUserLimit())
             chnl->removeMode('l');
-        chnl->setUserLimit(SIZE_MAX);
+        chnl->setUserLimit(0);
         limitMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " -l " + "\r\n";
     }
     chnl->broadcast(limitMsg);

@@ -6,7 +6,7 @@
 /*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/05/24 21:16:11 by muokcan           #+#    #+#             */
-/*   Updated: 2026/09/16 03:47:24 by oozsipah         ###   ########.fr       */
+/*   Updated: 2026/09/20 19:34:01 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -100,7 +100,7 @@ void        Channel::setKey(const std::string &key) { _key = key; }
 
 void        Channel::setInviteOnly(bool status) { _isInviteOnly = status; }
 void        Channel::setTopicRestricted(bool status) { _isTopicRestricted = status; }
-void        Channel::setUserLimit(size_t limit) { _userLimit = limit; }
+void        Channel::setUserLimit(size_t limit) { _userLimit = limit; (limit == 0) ? _isUserLimit = false : _isUserLimit = true; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
 

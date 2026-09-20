@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   cmdKick.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: alermi <alermi@student.42kocaeli.com.tr>   +#+  +:+       +#+        */
+/*   By: oozsipah <oozsipah@student.42kocaeli.co    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/18 15:06:58 by alermi            #+#    #+#             */
-/*   Updated: 2026/09/18 15:06:59 by alermi           ###   ########.fr       */
+/*   Updated: 2026/09/20 19:18:18 by oozsipah         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -90,16 +90,18 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             errUserNotInChannel(client, targetName, channelName);
             continue ;
         }
-		if (target->isOP())
+		if (chnl->isOperator(target))
 		{
 			chnl->removeOperator(target);
-			if (chnl->getMemberList().size() > 1)
+			if (chnl->getMemberList().size() > 1 && chnl->getOperators().empty())
 			{
 				if (*chnl->getMemberList().begin() == target)
 				{
 					chnl->addOperator(*(chnl->getMemberList().begin() + 1));
-					goto kick;
 				}
+				std::string opMsg = ":" + client->getMask() + " MODE " + chnl->getName() + " " + "+o" + target->getNickname() + "\r\n";
+    			chnl->broadcast(opMsg);
+				goto kick;
 				chnl->addOperator(*chnl->getMemberList().begin());
 			}
 
