@@ -49,4 +49,6 @@ void cmdQuit(Client *client, struct Command cmd, TManager<std::string, Channel *
         }
     }
 	Channel::deleteClientFromAllChannels(client, channels);
+	std::string errMsg = ":" + (std::string)SERVER_NAME + " ERROR :Closing Link: " + client->getNickname() + " (" + reason + ")\r\n";
+	client->appendToWriteBuffer(errMsg);
 }

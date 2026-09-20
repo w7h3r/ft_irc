@@ -180,14 +180,22 @@ bool        Channel::isInvite(Client *client) const
 void        Channel::deleteClientFromAllChannels(Client *client, TManager<std::string, Channel *> &channels)
 {
     std::map<std::string, Channel *> allChannels = channels.getAll();
+	std::map<std::string, Channel *>::iterator it = allChannels.begin();
 
-    for (std::map<std::string, Channel *>::iterator it = allChannels.begin(); it != allChannels.end(); it++)
+	while (it != allChannels.end())
     {
         Channel *chnl = it->second;
         if (chnl->isMember(client))
             chnl->removeMember(client);
         if (chnl->isOperator(client))
             chnl->removeOperator(client);
+		if (chnl->getMemberList().empty())
+		{
+			delete chnl;
+			allChannels.erase(it++);
+		}
+		else
+			it++;
     }
 }
 
