@@ -52,7 +52,8 @@ void    cmdJoin(Client *client, struct Command cmd, TManager<std::string, Channe
                 continue;
             }
 
-            chnl = createChannel(channelName, channelKey);
+			std::string	channelKeyStart = "";
+            chnl = createChannel(channelName, channelKeyStart);
             chnl->addMember(client);
             chnl->addOperator(client);
             client->incrementChannelCount();
