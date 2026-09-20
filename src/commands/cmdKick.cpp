@@ -57,7 +57,7 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
         if (channelName.empty() || (channelName[0] != '#' && channelName[0] != '&'))
         {
             errNoSuchChannel(client, channelName);
-            continue; ;
+            continue ;
         }
         Channel *chnl;
         try
@@ -70,20 +70,25 @@ void        cmdKick(Client *client, struct Command cmd, TManager<int, Client *> 
             continue;
         }
         Client  *target = getClient(targetName, clients);
+		if (!target)
+		{
+			errNoSuchNick(client, targetName);
+			continue ; 
+		}
         if (!chnl->isMember(client))
         {
             errNotOnChannel(client, channelName);
-            continue; ;
+            continue ;
         }
         if (!chnl->isOperator(client))
         {
             errChanOprivsNeeded(client, channelName);
-            continue; ;
+            continue ;
         }
         if (!chnl->isMember(target))
         {
             errUserNotInChannel(client, targetName, channelName);
-            continue; ;
+            continue ;
         }
         std::string kickerMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string comment;
