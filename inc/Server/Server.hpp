@@ -59,7 +59,6 @@ class	Server
 		void	_processCommand(Client* client, const std::string& rawCommand);
 		void	_modifyEpoll(int fd, int events);
 	
-		void	_deleteClientFromAllChannels(Client *client);
 	public:
 		Server(int port, const std::string& password);
 		~Server();
@@ -67,8 +66,10 @@ class	Server
 		Client	*getClientByUsername(std::string &username);
 		std::vector<Client *> getAllClients();
 
+		void	printServerState();
 	
-		void				_refuseClient(int fd);
+		void		_deleteClientFromAllChannels(Client *client);
+		void		_refuseClient(int fd);
 		static	Server		*getInstance() { return _instance; }
 		void				enableWriteEvent(int fd);
 		int					getPort() const;

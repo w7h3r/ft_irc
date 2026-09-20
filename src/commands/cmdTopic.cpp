@@ -42,6 +42,7 @@ void cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel 
             Server::getInstance()->enableWriteEvent(client->getFd());
         return;
     }
+
     if (!target->isMember(client))
     {
         errNotOnChannel(client, channelName);
@@ -49,7 +50,6 @@ void cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel 
             Server::getInstance()->enableWriteEvent(client->getFd());
         return;
     }
-
     bool isViewing = (cmd.params.size() == 1 && cmd.message.empty());
 
     if (isViewing)
@@ -65,11 +65,15 @@ void cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel 
     else
     {
         std::string newTopic = "";
+        
         if (!cmd.message.empty())
             newTopic = cmd.message;
         else if (cmd.params.size() > 1)
             newTopic = cmd.params[1];
         
+        if (!newTopic.empty() && newTopic[0] == ':')
+            newTopic = newTopic.substr(1);
+
         if (target->isTopicRestricted() && !target->isOperator(client))
         {
             errChanOprivsNeeded(client, channelName);
@@ -77,9 +81,21 @@ void cmdTopic(Client *client, struct Command cmd, TManager<std::string, Channel 
                 Server::getInstance()->enableWriteEvent(client->getFd());
             return;
         }
+
         target->setTopic(newTopic);
+        
         std::string senderMask = client->getNickname() + "!~" + client->getUsername() + "@" + client->getIp();
         std::string broadcastMsg = ":" + senderMask + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+        
         target->broadcast(broadcastMsg, NULL);
+
+        std::vector<Client*> members = target->getMemberList();
+        for (size_t i = 0; i < members.size(); i++)
+        {
+            if (Server::getInstance() != NULL)
+            {
+                Server::getInstance()->enableWriteEvent(members[i]->getFd());
+            }
+        }
     }
 }

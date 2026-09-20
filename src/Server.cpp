@@ -39,12 +39,10 @@ Server::Server(int port, const std::string& password) :
     _epollFd(-1)
 {
 	Server::_instance = this;
-    std::cout << "Server Constructor Called" << std::endl;
 }
 
 Server::~Server()
 {
-    std::cout << "Destrcutor Called" << std::endl;
     if (_socket != -1){
         close(_socket);
 	}
@@ -142,38 +140,6 @@ void Server::_writerClient(int fd)
             _modifyEpoll(fd, EPOLLIN);
     }
 }
-
-// the old one
-
-// void    Server::_writerClient(int fd)
-// {
-//     if (!_clients.exists(fd))
-//         return ;
-//
-//     Client    *newClient = _clients.get(fd);
-// 	if (!newClient)
-//         return ;
-// 	if (newClient->isDisconnected() || newClient->isRefused())
-// 	{
-// 		_refuseClient(fd);
-// 		return ;
-// 	}
-//     std::string    &output = newClient->getWriteBuffer();
-//     if (output.empty())
-//     {
-//         _modifyEpoll(fd, EPOLLIN);
-//         return ;
-//     }
-//     ssize_t byteCount = send(fd, output.c_str(), output.size(), MSG_NOSIGNAL);
-//     if (byteCount > 0)
-//     {
-//         output.erase(0, byteCount);
-//         if (output.empty())
-//             _modifyEpoll(fd, EPOLLIN);
-//     }
-//     else if (byteCount <= 0)
-//         _refuseClient(fd);
-// }
 
 void    Server::_readerClient(int fd)
 {
@@ -283,7 +249,6 @@ void    Server::_refuseClient(int fd)
     struct    epoll_event    dummy;
 
     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
-    //close(fd); ve _writerClient değişti
     
 	if (!_clients.exists(fd))
 		return ;
@@ -295,27 +260,6 @@ void    Server::_refuseClient(int fd)
 	delete delClient;
 	_clients.remove(fd);
 }
-
-// old one
-
-// void    Server::_refuseClient(int fd)
-// {
-//     std::cout << "[Disconnected Client Connection]" << std::endl;
-//     struct    epoll_event    dummy;
-//
-//     epoll_ctl(_epollFd, EPOLL_CTL_DEL, fd, &dummy);
-//     close(fd); 
-//
-// 	if (!_clients.exists(fd))
-// 		return ;
-//
-//     Client    *delClient = _clients.get(fd);
-// 	std::cout << ">" << fd << ":" << delClient->getIp() << std::endl;
-//
-// 	_deleteClientFromAllChannels(delClient);
-// 	delete delClient;
-// 	_clients.remove(fd);
-// }
 
 void	Server::_signalHandler(int signum)
 {

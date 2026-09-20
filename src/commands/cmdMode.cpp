@@ -177,7 +177,7 @@ void    cmdMode(Client *client, struct Command cmd, TManager<int, Client *> &cli
             if (op == 't')
                 channelModeTopic(client, chnl, setFlag);
         }
-		else if (op == 'o' || op == 'k' || (op == 'l' && setFlag)) 
+		else if (op == 'o' || (op == 'l' && setFlag)) 
         {
             if (argIndex < cmd.params.size())
             {
