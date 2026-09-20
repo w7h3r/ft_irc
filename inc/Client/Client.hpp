@@ -15,6 +15,8 @@
 
 #include <string>
 #include <vector>
+#include "../Server/Server.hpp"
+#include "../Channel/Channel.hpp"
 
 #define MAX_CHANNEL_COUNT 16
 
@@ -47,6 +49,8 @@ struct	Command
 	std::string					message;
 	
 };
+
+class	Channel;
 
 class	Client
 {
@@ -117,7 +121,7 @@ class	Client
 		void			decrementChannelCount();
 		int				getChannelCount() const;
 
-		void			sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> channels) const;
+		void			sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> &channels) const;
 			
 		Command			parseMessage(const std::string& message);
 };

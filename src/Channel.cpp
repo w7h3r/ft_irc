@@ -100,7 +100,7 @@ void        Channel::setKey(const std::string &key) { _key = key; }
 
 void        Channel::setInviteOnly(bool status) { _isInviteOnly = status; }
 void        Channel::setTopicRestricted(bool status) { _isTopicRestricted = status; }
-void        Channel::setUserLimit(size_t limit) { _userLimit = limit; (_userLimit == SIZE_MAX) ? _isUserLimit = 0 : _isUserLimit = 1; }
+void        Channel::setUserLimit(size_t limit) { _userLimit = limit; }
 // Member control stuff
 void        Channel::addMember(Client *client) { _members.push_back(client); }
 

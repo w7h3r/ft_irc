@@ -61,7 +61,7 @@ void    cmdPart(Client *client, struct Command cmd, TManager<std::string, Channe
     }
 }
 
-void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
+static void cmdPass(Client *client, struct Command cmd, const std::string serverPassword)
 {
 	if (cmd.params.empty() || cmd.params[0].empty())
 		return (NO_R(errNeedMoreParams(client, cmd.type)));
@@ -112,7 +112,7 @@ static bool	isValidName(const std::string& str)
 	return (true);
 }
 
-void cmdNick(Client *client, struct Command cmd)
+static void cmdNick(Client *client, struct Command cmd, TManager<std::string, Channel *> &channels)
 {
 	if (client->getConnState() == WAITING_PASS)
 		return (NO_R(errNotRegistered(client)));
@@ -122,6 +122,7 @@ void cmdNick(Client *client, struct Command cmd)
 		return (NO_R(errErroneusNickname(client, cmd.params[0])));
 
 	std::string nickname = cmd.params[0];
+	std::string oldMask = client->getMask();
 	Client *existingClient = getClientByNickname(nickname, Server::getInstance()->getAllClients());
 	if (existingClient && existingClient != client)
 		return (NO_R(errNicknameInUse(client, nickname)));
@@ -136,9 +137,13 @@ void cmdNick(Client *client, struct Command cmd)
 		rplCreated(client);
 		rplMyInfo(client);
 	}
+	else
+	{
+		client->sendMsgToAllVisibles(client, ":" + oldMask + " NICK :" + nickname + "\r\n", channels);
+	}
 }
 
-void cmdUser(Client *client, struct Command cmd)
+static void cmdUser(Client *client, struct Command cmd)
 {
 	if (client->getConnState() == WAITING_PASS)
 		return (NO_R(errNotRegistered(client)));
@@ -159,7 +164,7 @@ void cmdUser(Client *client, struct Command cmd)
 		client->setConnState(WAITING_INFO);
 }
 
-void cmdCap(Client *client, struct Command cmd)
+static void cmdCap(Client *client, struct Command cmd)
 {
 	if (!cmd.params.empty() && cmd.params[0] == "LS")
     {
@@ -172,15 +177,6 @@ void cmdCap(Client *client, struct Command cmd)
 	}
 }
 
-void	botPardus(Client *client)
-{
-	std::string response = "'pardus meows in turkish :3'\r\n";
-
-	client->appendToWriteBuffer(response);
-	if (Server::getInstance() != NULL)
-		Server::getInstance()->enableWriteEvent(client->getFd());
-}
-
 void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &clients, TManager<std::string, Channel *> &channels, const std::string& serverPassword)
 {
 	if (cmd.type == "PASS")
@@ -188,7 +184,7 @@ void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &
 	if (client->isRefused() || client->isDisconnected())
 		return ;
 	else if (cmd.type == "NICK")
-		return cmdNick(client, cmd);
+		return cmdNick(client, cmd, channels);
 	else if (cmd.type == "USER")
 		return cmdUser(client, cmd);
 	else if (cmd.type == "CAP")
@@ -197,8 +193,6 @@ void	decideCommand(Client *client, struct Command cmd, TManager<int, Client *> &
 		return errNotRegistered(client);
 	else if (cmd.type == "JOIN")
 		cmdJoin(client, cmd, channels);
-	else if (cmd.type == "PARDUS")
-		botPardus(client);
 	else if (cmd.type == "KICK")
 		cmdKick(client, cmd, clients, channels);
 	else if (cmd.type == "INVITE")

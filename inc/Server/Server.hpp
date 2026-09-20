@@ -13,10 +13,9 @@
 #ifndef	SERVER_HPP
 # define SERVER_HPP
 
-# include "../Channel/Channel.hpp"
 # include "../templates/TManager.hpp"
-# include "../Client/Client.hpp"
 # include <sys/epoll.h>
+#include <vector>
 
 # define LIVE 1
 # define DEAD 0
@@ -25,6 +24,9 @@
 # define MAX_EVENTS	512 
 # define DEFAULT_PASSWORD "gebze"
 # define SERVER_NAME "ircserv"
+
+class	Client;
+class	Channel;
 
 class	Server
 {

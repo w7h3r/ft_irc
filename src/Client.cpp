@@ -150,9 +150,9 @@ Command	Client::parseMessage(const std::string& rawMessage)
 	return (command);
 }
 
-void	Client::sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> channels) const
+void	Client::sendMsgToAllVisibles(Client *client, const std::string msg, TManager<std::string, Channel *> &channels) const
 {
-	std::map<std::string, Channel *> allChnls = channels.getAll();
+	std::map<std::string, Channel *> &allChnls = channels.getAll();
 	for (std::map<std::string, Channel *>::iterator it = allChnls.begin(); it != allChnls.end(); it++)
 	{
 		Channel *chnl = it->second;
