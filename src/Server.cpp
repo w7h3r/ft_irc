@@ -17,9 +17,7 @@
 #include <iostream>
 #include <string>
 #include <stdexcept>
-#include <cerrno>
 #include <csignal>
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/epoll.h>
@@ -291,7 +289,6 @@ void	Server::server_start()
 	{
 		eventCount = epoll_wait(_epollFd, _events, MAX_EVENTS, -1);
 		if (eventCount < 0) {
-            if (errno == EINTR) continue;
             throw std::runtime_error("Hata: epoll_wait basarisiz.");
         }
 
