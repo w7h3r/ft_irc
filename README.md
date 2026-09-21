@@ -1,422 +1,206 @@
- > *This project has been created as part of the 42 curriculum by alermi, oozsipah, muokcan.*
+*This project has been created as part of the 42 curriculum by alermi, oozsipah, muokcan.*
 
+# ft_irc — Internet Relay Chat Server
 
 ## Description
 
-This project is an introduction to socket programming and network communication using the C programming language. 
-
-
-The main goal of the project is to understand how two independent processes can communicate with each other over a network by using sockets. A socket acts as an endpoint of a two-way communication channel and allows a client and a server to exchange data.
-
-
-The project focuses on the fundamentals of the client-server architecture and the main system calls used to establish and manage network connections.
-
-
-A typical TCP socket communication follows these steps:
-
-
-```text
-
-                 TCP CONNECTION
-
-
-        +-------------------+
-
-        |       SERVER      |
-
-        |                   |
-
-        | socket()          |
-
-        | bind()            |
-
-        | listen()          |
-
-        | accept()          |
-
-        +---------+---------+
-
-                  |
-
-                  | Connection
-
-                  |
-
-        +---------v---------+
-
-        |       CLIENT      |
-
-        |                   |
-
-        | socket()          |
-
-        | connect()         |
-
-        | send()/recv()     |
-
-        +-------------------+
-
-```
-
-
-## Socket Types
-
-Sockets can be used with different communication protocols. The two main types are:
-
-
-### Stream Sockets — TCP
-
-TCP sockets provide:
-
-* Connection-oriented communication.
-
-* Reliable data transmission.
-
-* Ordered delivery of data.
-
-* Error detection and retransmission mechanisms.
-
-
-*TCP is commonly used by applications such as web servers, file transfers and many client-server applications.*
-
-
-### Datagram Sockets — UDP
-
-UDP sockets provide:
-
-* Connectionless communication.
-
-* Lower communication overhead.
-
-* No guarantee of delivery.
-
-* No guarantee that packets arrive in order.
-
-
-*UDP is commonly used when speed is more important than guaranteed delivery, such as some real-time communication and streaming applications.*
-
-
-## Main Socket Functions
-
-
-| Function | Purpose |
-
-| :--- | :--- |
-
-| `socket()` | Creates a new socket |
-
-| `setsockopt()` | Configures socket options |
-
-| `bind()` | Associates a socket with an address and port |
-
-| `listen()` | Places a server socket into listening mode |
-
-| `accept()` | Accepts an incoming client connection |
-
-| `connect()` | Connects a client socket to a server |
-
-| `send()` | Sends data through a socket |
-
-| `recv()` | Receives data from a socket |
-
-| `read()` | Reads data from a socket |
-
-| `write()` | Writes data to a socket |
-
-| `close()` | Closes a socket and releases resources |
-
-
-## Client-Server Model
-
-The project is based on the client-server communication model.
-
-
-The server creates a listening socket and waits for clients. Once a client connects, the server can receive and send information through the connected socket. The client creates a socket and initiates the connection to the server using the server's IP address and port number.
-
-
-For example:
-
-`127.0.0.1:8080`
-
-
-Where:
-
-* `127.0.0.1` represents the local machine.
-
-* `8080` represents the network port.
-
-
-Once the connection is established, both processes can exchange messages.
-
-
-## Technical Concepts
-
-This project provides practical experience with several important networking concepts:
-
-
-* IPv4 addressing with `AF_INET`.
-
-* TCP communication with `SOCK_STREAM`.
-
-* Socket file descriptors.
-
-* Network byte order and `htons()`.
-
-* `struct sockaddr_in`.
-
-* Server-side socket initialization.
-
-* Client-side socket connection.
-
-* Blocking socket behavior.
-
-* Sending and receiving data.
-
-* Connection management.
-
-* Error handling.
-
-* Resource management.
-
+**ft_irc** is an IRC (Internet Relay Chat) server written in **C++98**. IRC is a text-based, real-time communication protocol in which clients connect to a server to exchange private messages and to talk in group channels.
+
+The goal of the project is to build a working IRC server from scratch, using only low-level POSIX socket APIs, that a real IRC client can connect to and use as it would any official IRC server. Along the way, the project covers:
+
+- TCP/IP socket programming (`socket`, `bind`, `listen`, `accept`, `send`, `recv`).
+- Handling many clients at once in a **single process**, with **non-blocking I/O** and a **single `poll()` call**. No forking, and no threads.
+- Parsing a text-based network protocol (IRC messages terminated by `\r\n`), including reassembling commands that arrive in several partial packets.
+- Managing users, channels, operator privileges and channel modes.
+
+Server-to-server communication is **not** implemented (it is out of the project's scope), and no IRC client is included. A standard existing client is used to connect.
+
+### Features
+
+- Connection authentication with a server password (`PASS`).
+- Nickname and username registration (`NICK`, `USER`).
+- Joining and leaving channels (`JOIN`, `PART`).
+- Private messages between users and messages to channels (`PRIVMSG`). A channel message is forwarded to every other member of the channel.
+- Channel operators and regular users.
+- Operator commands: `KICK`, `INVITE`, `TOPIC`, `MODE`.
+- Channel modes: `i`, `t`, `k`, `o`, `l`.
+- Clean handling of disconnections (`QUIT`, or a connection closed by the client).
 
 ## Instructions
 
-
 ### Requirements
 
-The project is intended for a Unix/Linux environment and requires:
+- A Unix-like system (Linux or macOS).
+- A C++ compiler that supports the C++98 standard (`c++`).
+- `make`.
+- An IRC client for testing (our reference client is **irssi**), and optionally `nc` (netcat).
 
-* A C compiler such as `gcc` or `cc`.
+### Compilation
 
-* POSIX-compatible socket APIs.
-
-* Standard Unix system calls and networking headers.
-
-
-The socket API used by the project includes:
-
-```c
-
-#include <sys/socket.h>
-
-#include <netinet/in.h>
-
-#include <arpa/inet.h>
-
-#include <unistd.h>
-
-```
-
-
-"### Compilation\n"
-
-"If the project provides a Makefile, compile it from the root directory with:\n"
+From the root of the repository, run:
 
 ```bash
-
 make
-
 ```
 
-
-If the source files are compiled directly, a typical compilation command is:
+This produces the `ircserv` executable. The project is compiled with:
 
 ```bash
-
-gcc server.c -o server
-
-gcc client.c -o client
-
+c++ -Wall -Wextra -Werror -std=c++98
 ```
 
+The other Makefile rules are:
 
-For C++ implementations, the equivalent command can be:
-
-```bash
-
-c++ server.cpp -o server
-
-c++ client.cpp -o client
-
-```
-
-*The exact compilation command should follow the project's provided Makefile and source-file structure.*
-
+| Rule          | Effect                                         |
+| :------------ | :--------------------------------------------- |
+| `make` / `all`| Builds `ircserv`                               |
+| `make clean`  | Removes object files                           |
+| `make fclean` | Removes object files and the `ircserv` binary  |
+| `make re`     | Runs `fclean`, then `all`                      |
 
 ### Execution
 
-Start the server first:
-
 ```bash
-
-./server
-
+./ircserv <port> <password>
 ```
 
-Then, from another terminal, start the client:
+- `port`: the TCP port the server listens on (for example `6667`, the standard IRC port).
+- `password`: the password every client must provide in order to connect.
+
+For example:
 
 ```bash
-
-./client
-
+./ircserv 6667 secret
 ```
 
+### Connecting with the reference client (irssi)
 
-The server must be running and listening on the configured port before the client attempts to connect. For local testing, the server can use `127.0.0.1` with a configured port such as `8080`.
+```bash
+irssi
+```
 
-
-### Example Communication
-
-A simple client/server exchange can look like:
+Then, inside irssi:
 
 ```text
-
-Client: Hello from client
-
-Server: Hello from server
-
+/connect 127.0.0.1 6667 secret mynick
+/join #general
+/msg #general Hello everyone!
+/msg othernick Hi, this is a private message
 ```
 
-The server waits for a connection, accepts the client, receives its message and can respond. The client connects to the server, sends its message and waits for the response.
+### Connecting with netcat
 
+`nc` can be used to send raw IRC commands. The `-C` flag makes it send `\r\n` line endings, as the IRC protocol requires.
 
-## Common Issues
-
-
-### Connection Failed
-
-Make sure:
-
-* The server is running.
-
-* The client uses the correct IP address.
-
-* The client uses the correct port.
-
-* No firewall or network configuration is blocking the connection.
-
-
-### Address Already in Use
-
-A port may still be associated with another process or a recently closed connection. Using `setsockopt()` with appropriate socket options such as `SO_REUSEADDR` can help when restarting a server.
-
-
-### Blocking Calls
-
-By default, sockets are generally blocking. Calls such as:
-
-```c
-
-accept();
-
-recv();
-
-read();
-
+```bash
+nc -C 127.0.0.1 6667
+PASS secret
+NICK alice
+USER alice 0 * :Alice
+JOIN #general
+PRIVMSG #general :Hello!
 ```
 
-may wait until a connection or data becomes available. This behavior should be taken into account when designing the communication flow.
+If registration succeeds, the server replies with the welcome message (`001 RPL_WELCOME`).
 
+### Testing partial data
 
-### Resource Management
+The server buffers incoming data per client and only processes a command once a complete line has arrived. To check this, connect with `nc -C 127.0.0.1 6667` and type a command in pieces, pressing `Ctrl+D` after each piece:
 
-Every socket created by `socket()` should eventually be closed with:
-
-```c
-
-close(sockfd);
-
+```text
+com^Dman^Dd
 ```
 
-Properly closing file descriptors prevents resource leaks and keeps the program's network resources under control.
+The server receives `com`, then `man`, then `d\r\n`, and processes them as the single command `command`.
 
+## Supported Commands
+
+| Command   | Usage                                   | Description                                             |
+| :-------- | :-------------------------------------- | :------------------------------------------------------ |
+| `PASS`    | `PASS <password>`                       | Authenticates with the server password (sent first)     |
+| `NICK`    | `NICK <nickname>`                       | Sets or changes the nickname                            |
+| `USER`    | `USER <username> 0 * :<realname>`       | Sets the username and real name                         |
+| `JOIN`    | `JOIN <#channel> [key]`                 | Joins a channel, creating it if it does not exist       |
+| `PART`    | `PART <#channel> [:reason]`             | Leaves a channel                                        |
+| `PRIVMSG` | `PRIVMSG <target> :<message>`           | Sends a message to a user or a channel                  |
+| `KICK`    | `KICK <#channel> <nick> [:reason]`      | Ejects a user from a channel *(operator only)*          |
+| `INVITE`  | `INVITE <nick> <#channel>`              | Invites a user to a channel                             |
+| `TOPIC`   | `TOPIC <#channel> [:new topic]`         | Shows or changes the channel topic                      |
+| `MODE`    | `MODE <#channel> <+/-modes> [params]`   | Changes the channel modes *(operator only)*             |
+| `PING`    | `PING <token>`                          | Keep-alive check; the server answers with `PONG`        |
+| `QUIT`    | `QUIT [:message]`                       | Disconnects from the server                             |
+
+### Channel Modes
+
+| Mode | Parameter  | Description                                                      |
+| :--- | :--------- | :--------------------------------------------------------------- |
+| `i`  | —          | Invite-only channel: users can only join if they were invited    |
+| `t`  | —          | Only channel operators can change the topic                      |
+| `k`  | `<key>`    | Sets or removes the channel key (password)                       |
+| `o`  | `<nick>`   | Gives or takes channel operator privilege                        |
+| `l`  | `<limit>`  | Sets or removes the maximum number of users in the channel       |
+
+The first user to join a channel automatically becomes its operator.
+
+## Technical Choices
+
+- **Single event loop.** All file descriptors (the listening socket and every client socket) are watched by **one** `poll()` call. Accepting new connections, reading and writing all go through this loop. `recv()` and `send()` are only called on a descriptor after `poll()` has reported it ready.
+- **Non-blocking sockets.** Every socket is switched to non-blocking mode with `fcntl(fd, F_SETFL, O_NONBLOCK)`, so no single client can block the server.
+- **No `errno` after I/O.** The server never inspects `errno` after `recv()` or `send()` to decide what to do next. Decisions rely only on the return value and on the events reported by `poll()`.
+- **Per-client input buffer.** Received bytes are appended to the client's buffer. Complete lines (ending in `\r\n`, with plain `\n` also accepted) are extracted and parsed one at a time, and any incomplete remainder stays in the buffer until more data arrives.
+- **Per-client output buffer.** Replies are queued in an output buffer and sent when `poll()` reports the socket as writable (`POLLOUT`), which handles slow clients and partial sends.
+- **Clean disconnection.** When a client disconnects, its socket is closed, it is removed from every channel it belonged to, and empty channels are deleted.
+- **Replies** follow the numeric reply format of RFC 2812 (for example `001 RPL_WELCOME`, `433 ERR_NICKNAMEINUSE`, `482 ERR_CHANOPRIVSNEEDED`), so standard clients can interpret them.
 
 ## Project Structure
 
-The exact structure depends on the implementation, but a typical project can be organized as follows:
-
 ```text
-
-
-├── README.md
-
+.
 ├── Makefile
-
-├── include
-
+├── README.md
+├── include/
+│   ├── Server.hpp
+│   ├── Client.hpp
+│   ├── Channel.hpp
 │   └── ...
-
-├── src/
-
-│   ├── ...
-
-│   └── ...
-
-└── ...
-
+└── src/
+    ├── main.cpp
+    ├── Server.cpp
+    ├── Client.cpp
+    ├── Channel.cpp
+    ├── commands/
+    │   └── ...
+    └── ...
 ```
-
 
 ## Resources
 
-The following resources were used to understand the concepts behind socket programming and the APIs used in the project:
+### IRC protocol
 
-* **Linux man pages**: `man socket`, `man bind`, `man listen`, `man accept`, `man connect`, `man send`, `man recv`, `man close`
+- [RFC 1459 — Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459)
+- [RFC 2810 — IRC: Architecture](https://datatracker.ietf.org/doc/html/rfc2810)
+- [RFC 2811 — IRC: Channel Management](https://datatracker.ietf.org/doc/html/rfc2811)
+- [RFC 2812 — IRC: Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
+- [Modern IRC Client Protocol](https://modern.ircdocs.horse/)
+- [irssi documentation](https://irssi.org/documentation/)
 
-* **Beej's Guide to Network Programming**: A practical introduction to network programming and sockets in C.
+### Network programming
 
-* **Linux Programmer's Manual**: Useful for understanding POSIX system calls, file descriptors and networking APIs.
+- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
+- Linux man pages: `socket(2)`, `bind(2)`, `listen(2)`, `accept(2)`, `recv(2)`, `send(2)`, `poll(2)`, `fcntl(2)`, `setsockopt(2)`, `close(2)`
 
-* **GNU C Library documentation**: Reference material for C programming and standard library functionality.
+### AI Usage
 
-* **POSIX Socket API documentation**: Reference for the standard socket functions and structures used by Unix/Linux systems.
+AI tools were used as a supporting resource during the project, for the following tasks:
 
+- **Documentation:** organizing, structuring and proofreading this `README.md`.
+- **Learning concepts:** explanations of socket programming (`socket()`, `bind()`, `listen()`, `accept()`), of non-blocking I/O with `poll()`, and of the IRC message format described in the RFCs.
+- **Debugging help:** explanations of common socket programming errors (for example `Address already in use` and `SO_REUSEADDR`).
 
-## AI Usage\n"
-
-AI tools were used as a supporting resource during the project. The main uses of AI were:
-
-* Helping organize and structure the `README.md`.
-
-* Explaining socket programming concepts such as `socket()`, `bind()`, `listen()`, `accept()` and `connect()`.
-
-* Clarifying the difference between TCP/stream sockets and UDP/datagram sockets.
-
-* Helping identify and explain common socket programming errors.
-
-* Improving the readability and organization of the project's documentation.
-
-* Reviewing explanations and terminology used in the documentation.
-
-
-AI was not used as a replacement for understanding or implementing the project's core requirements. The project code, architecture and implementation decisions were developed and reviewed by the project authors.*
-
-
-## Learning Objectives\n"
-
-Through this project, we aim to develop a practical understanding of:
-
-* How network communication works at the application level.
-
-* How client-server architectures are implemented.
-
-* How sockets are created and managed.
-
-* How TCP connections are established.
-
-* How processes exchange data over sockets.
-
-* How IP addresses and ports identify communication endpoints.
-
-* How to handle network-related errors.
-
-* How to correctly manage system resources.
-
+AI was not used as a replacement for understanding or implementing the project's core requirements. The server architecture, the command handling and the implementation decisions were written, tested and reviewed by the project authors, who can explain every part of the code.
 
 ## Authors
 
-* **alermi**
-
-* **oozsipah**
-
-* **muokcan** 
+- **alermi**
+- **oozsipah**
+- **muokcan**
