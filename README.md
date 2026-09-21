@@ -33,7 +33,7 @@ Server-to-server communication is **not** implemented (it is out of the project'
 - A Unix-like system (Linux or macOS).
 - A C++ compiler that supports the C++98 standard (`c++`).
 - `make`.
-- An IRC client for testing (our reference client is **hexchat**), and optionally `nc` (netcat).
+- An IRC client for testing (our reference client is **HexChat**), and optionally `nc` (netcat).
 
 ### Compilation
 
@@ -70,22 +70,27 @@ The other Makefile rules are:
 For example:
 
 ```bash
-./ircserv 6667 secret
+./ircserv 6667 1234
 ```
 
-### Connecting with the reference client (irssi)
+### Connecting with the reference client (HexChat)
 
-```bash
-irssi
-```
+1. Open HexChat. The **Network List** window appears.
+2. Set your nickname and username at the top of the window.
+3. Click **Add**, name the network (for example `ft_irc`), then click **Edit**.
+4. Under **Servers**, replace the default entry with `127.0.0.1/6667`.
+5. Set **Login method** to **Server password (/PASS)** and enter the server password in the **Password** field.
+6. Close the window and click **Connect**.
 
-Then, inside irssi:
+Once connected:
 
 ```text
-/connect 127.0.0.1 6667 secret mynick
 /join #general
 /msg #general Hello everyone!
 /msg othernick Hi, this is a private message
+/topic #general New topic
+/mode #general +i
+/kick #general othernick
 ```
 
 ### Connecting with netcat
@@ -94,24 +99,12 @@ Then, inside irssi:
 
 ```bash
 nc -C 127.0.0.1 6667
-PASS secret
+PASS 1234
 NICK alice
 USER alice 0 * :Alice
 JOIN #general
 PRIVMSG #general :Hello!
 ```
-
-If registration succeeds, the server replies with the welcome message (`001 RPL_WELCOME`).
-
-### Testing partial data
-
-The server buffers incoming data per client and only processes a command once a complete line has arrived. To check this, connect with `nc -C 127.0.0.1 6667` and type a command in pieces, pressing `Ctrl+D` after each piece:
-
-```text
-com^Dman^Dd
-```
-
-The server receives `com`, then `man`, then `d\r\n`, and processes them as the single command `command`.
 
 ## Supported Commands
 
@@ -127,7 +120,6 @@ The server receives `com`, then `man`, then `d\r\n`, and processes them as the s
 | `INVITE`  | `INVITE <nick> <#channel>`              | Invites a user to a channel                             |
 | `TOPIC`   | `TOPIC <#channel> [:new topic]`         | Shows or changes the channel topic                      |
 | `MODE`    | `MODE <#channel> <+/-modes> [params]`   | Changes the channel modes *(operator only)*             |
-| `PING`    | `PING <token>`                          | Keep-alive check; the server answers with `PONG`        |
 | `QUIT`    | `QUIT [:message]`                       | Disconnects from the server                             |
 
 ### Channel Modes
@@ -146,58 +138,18 @@ The first user to join a channel automatically becomes its operator.
 
 - **Single event loop.** All file descriptors (the listening socket and every client socket) are watched by **one** `poll()` call. Accepting new connections, reading and writing all go through this loop. `recv()` and `send()` are only called on a descriptor after `poll()` has reported it ready.
 - **Non-blocking sockets.** Every socket is switched to non-blocking mode with `fcntl(fd, F_SETFL, O_NONBLOCK)`, so no single client can block the server.
-- **No `errno` after I/O.** The server never inspects `errno` after `recv()` or `send()` to decide what to do next. Decisions rely only on the return value and on the events reported by `poll()`.
-- **Per-client input buffer.** Received bytes are appended to the client's buffer. Complete lines (ending in `\r\n`, with plain `\n` also accepted) are extracted and parsed one at a time, and any incomplete remainder stays in the buffer until more data arrives.
 - **Per-client output buffer.** Replies are queued in an output buffer and sent when `poll()` reports the socket as writable (`POLLOUT`), which handles slow clients and partial sends.
 - **Clean disconnection.** When a client disconnects, its socket is closed, it is removed from every channel it belonged to, and empty channels are deleted.
-- **Replies** follow the numeric reply format of RFC 2812 (for example `001 RPL_WELCOME`, `433 ERR_NICKNAMEINUSE`, `482 ERR_CHANOPRIVSNEEDED`), so standard clients can interpret them.
-
-## Project Structure
-
-```text
-.
-├── Makefile
-├── README.md
-├── include/
-│   ├── Server.hpp
-│   ├── Client.hpp
-│   ├── Channel.hpp
-│   └── ...
-└── src/
-    ├── main.cpp
-    ├── Server.cpp
-    ├── Client.cpp
-    ├── Channel.cpp
-    ├── commands/
-    │   └── ...
-    └── ...
-```
 
 ## Resources
 
-### IRC protocol
-
-- [RFC 1459 — Internet Relay Chat Protocol](https://datatracker.ietf.org/doc/html/rfc1459)
-- [RFC 2810 — IRC: Architecture](https://datatracker.ietf.org/doc/html/rfc2810)
-- [RFC 2811 — IRC: Channel Management](https://datatracker.ietf.org/doc/html/rfc2811)
-- [RFC 2812 — IRC: Client Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
-- [Modern IRC Client Protocol](https://modern.ircdocs.horse/)
-- [irssi documentation](https://irssi.org/documentation/)
-
-### Network programming
-
-- [Beej's Guide to Network Programming](https://beej.us/guide/bgnet/)
-- Linux man pages: `socket(2)`, `bind(2)`, `listen(2)`, `accept(2)`, `recv(2)`, `send(2)`, `poll(2)`, `fcntl(2)`, `setsockopt(2)`, `close(2)`
+- [RFC 1459 — Internet Relay Chat Protocol](https://www.rfc-editor.org/info/rfc1459/)
+- [General information about how Sockets work](https://www.geeksforgeeks.org/computer-networks/socket-in-computer-network/)
+- [Socket Programming in C++](https://www.geeksforgeeks.org/cpp/socket-programming-in-cpp/)
 
 ### AI Usage
 
-AI tools were used as a supporting resource during the project, for the following tasks:
-
-- **Documentation:** organizing, structuring and proofreading this `README.md`.
-- **Learning concepts:** explanations of socket programming (`socket()`, `bind()`, `listen()`, `accept()`), of non-blocking I/O with `poll()`, and of the IRC message format described in the RFCs.
-- **Debugging help:** explanations of common socket programming errors (for example `Address already in use` and `SO_REUSEADDR`).
-
-AI was not used as a replacement for understanding or implementing the project's core requirements. The server architecture, the command handling and the implementation decisions were written, tested and reviewed by the project authors, who can explain every part of the code.
+AI model's usage was mostly about debugging and getting rid of tedious/repetetive work.
 
 ## Authors
 
