@@ -33,7 +33,7 @@ Server-to-server communication is **not** implemented (it is out of the project'
 - A Unix-like system (Linux or macOS).
 - A C++ compiler that supports the C++98 standard (`c++`).
 - `make`.
-- An IRC client for testing (our reference client is **irssi**), and optionally `nc` (netcat).
+- An IRC client for testing (our reference client is **hexchat**), and optionally `nc` (netcat).
 
 ### Compilation
 
